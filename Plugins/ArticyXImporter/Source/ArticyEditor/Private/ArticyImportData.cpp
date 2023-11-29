@@ -869,12 +869,17 @@ void UArticyImportData::ImportAudioAssets(const FString& BaseContentDir, const F
 		// Save the package
 		FString PackageName = Package->GetName();
 		FString PackageOutFileName = FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension());
+
+#if (ENGINE_MAJOR_VERSION >= 5)
 		FSavePackageArgs SaveArgs;
 		SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
 		SaveArgs.Error = GError;
 		SaveArgs.bForceByteSwapping = false;
 		SaveArgs.bWarnOfLongFilename = false;
 		UPackage::SavePackage(Package, NewSoundWave, *PackageOutFileName, SaveArgs);
+#else
+		UPackage::SavePackage(Package, NewSoundWave, RF_Public | RF_Standalone, *PackageOutFileName, GError);
+#endif
 	}
 }
 

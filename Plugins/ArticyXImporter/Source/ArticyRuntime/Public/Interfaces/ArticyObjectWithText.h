@@ -9,6 +9,7 @@
 #include "Engine/Engine.h"
 #include "Internationalization/StringTable.h"
 #include "ArticyAsset.h"
+#include "ArticyDatabase.h"
 #include "ArticyTextExtension.h"
 #include "ArticyObjectWithText.generated.h"
 
@@ -93,12 +94,17 @@ public:
 			AssetId = FArticyId{ ResolveText(FText::FromString(Key.ToString() + ".VOAsset")).ToString() };
 		}
 
-		const UArticyObject* AssetObject = UArticyObject::FindAsset(AssetId);
-		if (AssetObject)
+		const UArticyDatabase* Database = UArticyDatabase::Get(WorldContext);
+		if (!Database)
 		{
-			return (Cast<UArticyAsset>(AssetObject))->LoadAsSoundWave();
+			return nullptr;
 		}
-		return nullptr;
+		const UArticyObject* AssetObject = Database->GetObject(AssetId);
+		if (!AssetObject)
+		{
+			return nullptr;
+		}
+		return (Cast<UArticyAsset>(AssetObject))->LoadAsSoundWave();
 	}
 
 	virtual USoundWave* GetVOAsset() const
