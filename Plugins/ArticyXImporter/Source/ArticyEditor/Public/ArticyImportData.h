@@ -454,5 +454,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category="Imported")
 	TMap<FArticyId, FArticyIdArray> ParentChildrenCache;
+
+	void ImportAudioAssets(const FString& BaseContentDir, const FString& SubDir);
 };
 
