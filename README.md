@@ -9,10 +9,10 @@ This project is a good way to show you how you can create a full game using arti
 
 Before you can start you need to make sure you have all the additional applications and projects downloaded:
 
-* Unreal Engine 5.xx (this demo project is also available for Unreal 4.25.x [here](https://github.com/ArticySoftware/DemoProjectForUnreal-ManiacManfred/tree/UE4))
-* Visual Studio 2017, 2019 or 2022
-* articy:draft 3.1.16 or higher
-* The "Maniac Manfred" articy:draft demo project, which you can get [here](https://www.articy.com/redirect/Manfred.Articy)
+* Unreal Engine 5.xx
+* Visual Studio 2019 or 2022
+* articy:draft X 4.0.0 or higher
+* The "Maniac Manfred" articy:draft X demo project, which you can get [here](https://www.articy.com/redirect/adx-Manfred.Articy)
 
 You only need the articy:draft Maniac Manfred project, if you want to make changes to the project and export them to see how the Unreal project and the plugin behaves.
 

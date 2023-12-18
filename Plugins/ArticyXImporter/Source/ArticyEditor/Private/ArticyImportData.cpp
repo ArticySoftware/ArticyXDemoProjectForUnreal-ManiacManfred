@@ -20,6 +20,10 @@
 #include "BuildToolParser/BuildToolParser.h"
 #include "Serialization/JsonSerializer.h"
 #include "HAL/PlatformFileManager.h"
+#include "HAL/FileManager.h"
+#include "Misc/FileHelper.h"
+#include "Factories/SoundFactory.h"
+#include "UObject/SavePackage.h"
 
 #define LOCTEXT_NAMESPACE "ArticyImportData"
 
@@ -638,6 +642,10 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 						{
 							// Specific language data
 							CsvOutput->Line(Text.Key, Text.Value.Content[language.Key].Text);
+							if (!Text.Value.Content[language.Key].VOAsset.IsEmpty())
+							{
+								CsvOutput->Line(Text.Key + ".VOAsset", Text.Value.Content[language.Key].VOAsset);
+							}
 						}
 						else
 						{
@@ -645,6 +653,10 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 							const auto Iterator = Text.Value.Content.CreateConstIterator();
 							const auto& Elem = *Iterator;
 							CsvOutput->Line(Text.Key, Elem.Value.Text);
+							if (!Elem.Value.VOAsset.IsEmpty())
+							{
+								CsvOutput->Line(Text.Key + ".VOAsset", Elem.Value.VOAsset);
+							}
 						}
 						Counter++;
 					}
@@ -725,6 +737,10 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 						{
 							// Specific language data
 							CsvOutput->Line(Text.Key, Text.Value.Content[language.Key].Text);
+							if (!Text.Value.Content[language.Key].VOAsset.IsEmpty())
+							{
+								CsvOutput->Line(Text.Key + ".VOAsset", Text.Value.Content[language.Key].VOAsset);
+							}
 						}
 						else
 						{
@@ -732,6 +748,10 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 							const auto Iterator = Text.Value.Content.CreateConstIterator();
 							const auto& Elem = *Iterator;
 							CsvOutput->Line(Text.Key, Elem.Value.Text);
+							if (!Elem.Value.VOAsset.IsEmpty())
+							{
+								CsvOutput->Line(Text.Key + ".VOAsset", Elem.Value.VOAsset);
+							}
 						}
 						Counter++;
 					}
@@ -741,6 +761,11 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 			});
 		}
 	}
+
+	// Import Unreal audio assets
+	FString AssetBaseDirectory = FPaths::ProjectContentDir() + TEXT("ArticyContent/Resources/Assets/");
+	ImportAudioAssets(AssetBaseDirectory, TEXT("Voice-Over/"));
+	ImportAudioAssets(AssetBaseDirectory, TEXT("Audio/"));
 
 	// if we are generating code, generate and compile it; after it has finished, generate assets and perform post import logic
 	if (bNeedsCodeGeneration)
@@ -775,6 +800,86 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 		BuildCachedVersion();
 		CodeGenerator::GenerateAssets(this);
 		PostImport();
+	}
+}
+
+void UArticyImportData::ImportAudioAssets(const FString& BaseContentDir, const FString& SubDir)
+{
+	TArray<FString> FilesToImport;
+	FString SourceDirectory = BaseContentDir + SubDir;
+
+	// Recursively find all .wav files in the directory
+	IFileManager& FileManager = IFileManager::Get();
+	FileManager.FindFilesRecursive(FilesToImport, *SourceDirectory, TEXT("*.wav"), true, false, false);
+	FileManager.FindFilesRecursive(FilesToImport, *SourceDirectory, TEXT("*.ogg"), true, false, false);
+
+	IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry").Get();
+
+	for (FString& FilePath : FilesToImport)
+	{
+		// Calculate the relative path from the base directory
+		FString RelativePath = FilePath;
+		FPaths::MakePathRelativeTo(RelativePath, *SourceDirectory);
+
+		// Generate the package path where the new asset will be created
+		FString PackagePath = TEXT("/Game/ArticyContent/Resources/Assets/") + SubDir + FPaths::GetPath(RelativePath);
+		FString FileName = FPaths::GetBaseFilename(FilePath);
+		FString PackageFileName = FPaths::Combine(PackagePath, FileName + TEXT(".uasset"));
+
+		// Check if the asset already exists in the asset registry
+		FAssetData AssetData = AssetRegistry.GetAssetByObjectPath(FName(*PackageFileName));
+		if (AssetData.IsValid())
+		{
+			// Check the timestamp to determine if the asset needs updating
+			const FDateTime SourceTimeStamp = FileManager.GetTimeStamp(*FilePath);
+			IAssetRegistry* AssetRegistryPtr = &AssetRegistry;
+			FAssetData CurrentAssetData = AssetRegistryPtr->GetAssetByObjectPath(FName(*PackageFileName));
+			UObject* Asset = CurrentAssetData.GetAsset();
+			if (Asset && Asset->GetOutermost())
+			{
+				const FDateTime AssetTimeStamp = IFileManager::Get().GetTimeStamp(*Asset->GetOutermost()->FileName.ToString());
+				if (SourceTimeStamp <= AssetTimeStamp)
+				{
+					// The asset is up-to-date; skip re-importing
+					continue;
+				}
+			}
+		}
+
+		// Create a new package for the asset
+		UPackage* Package = CreatePackage(*FPaths::Combine(PackagePath, FileName));
+		Package->FullyLoad();
+
+		// Create a new sound asset in the package
+		USoundWave* NewSoundWave = NewObject<USoundWave>(Package, FName(*FileName), RF_Public | RF_Standalone);
+
+		// Import the .wav file into the newly created sound asset
+		bool bCancelled = false;
+		USoundFactory* Factory = NewObject<USoundFactory>();
+		Factory->SuppressImportDialogs(); // Suppress overwrite prompts
+		Factory->bAutoCreateCue = false;
+		Factory->ImportObject(NewSoundWave->GetClass(), Package, FName(*FileName), RF_Public | RF_Standalone, FilePath, nullptr, bCancelled);
+
+		// Notify the asset registry of the new asset
+		FAssetRegistryModule::AssetCreated(NewSoundWave);
+
+		// Mark the package as dirty so it will be saved
+		Package->MarkPackageDirty();
+
+		// Save the package
+		FString PackageName = Package->GetName();
+		FString PackageOutFileName = FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension());
+
+#if (ENGINE_MAJOR_VERSION >= 5)
+		FSavePackageArgs SaveArgs;
+		SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
+		SaveArgs.Error = GError;
+		SaveArgs.bForceByteSwapping = false;
+		SaveArgs.bWarnOfLongFilename = false;
+		UPackage::SavePackage(Package, NewSoundWave, *PackageOutFileName, SaveArgs);
+#else
+		UPackage::SavePackage(Package, NewSoundWave, RF_Public | RF_Standalone, *PackageOutFileName, GError);
+#endif
 	}
 }
 

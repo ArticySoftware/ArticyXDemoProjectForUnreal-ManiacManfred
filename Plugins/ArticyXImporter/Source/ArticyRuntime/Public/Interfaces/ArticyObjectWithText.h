@@ -8,6 +8,8 @@
 #include "UObject/TextProperty.h"
 #include "Engine/Engine.h"
 #include "Internationalization/StringTable.h"
+#include "ArticyAsset.h"
+#include "ArticyDatabase.h"
 #include "ArticyTextExtension.h"
 #include "ArticyObjectWithText.generated.h"
 
@@ -46,7 +48,7 @@ public:
 			return ResolveText(SourceString);
 		}
 
-		// By default, return the key
+		// By default, return via the key
 		return ResolveText(Key);
 	}
 
@@ -63,6 +65,54 @@ public:
 		static const auto PropName = FName("Text");
 		return GetProperty<FText>(PropName) = Text;
 	}
+
+	UFUNCTION(BlueprintCallable, Category = "ArticyObjectWithText")
+	virtual USoundWave* GetVOAsset(UObject* WorldContext)
+	{
+		static const auto PropName = FName("Text");
+		FText& Key = GetProperty<FText>(PropName);
+		const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
+		FArticyId AssetId;
+
+		// Look up entry in specified string table
+		TOptional<FString> TableName = FTextInspector::GetNamespace(Key);
+		if (!TableName.IsSet())
+		{
+			TableName = TEXT("ARTICY");
+		}
+		const FText SourceString = FText::FromStringTable(
+			FName(TableName.GetValue()),
+			Key.ToString() + ".VOAsset",
+			EStringTableLoadingPolicy::FindOrFullyLoad);
+		const FString Decoded = SourceString.ToString();
+		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
+		{
+			AssetId = FArticyId{ ResolveText(SourceString).ToString() };
+		}
+		else
+		{
+			AssetId = FArticyId{ ResolveText(FText::FromString(Key.ToString() + ".VOAsset")).ToString() };
+		}
+
+		const UArticyDatabase* Database = UArticyDatabase::Get(WorldContext);
+		if (!Database)
+		{
+			return nullptr;
+		}
+		const UArticyObject* AssetObject = Database->GetObject(AssetId);
+		if (!AssetObject)
+		{
+			return nullptr;
+		}
+		return (Cast<UArticyAsset>(AssetObject))->LoadAsSoundWave();
+	}
+
+	virtual USoundWave* GetVOAsset() const
+	{
+		return const_cast<IArticyObjectWithText*>(this)->GetVOAsset();
+	}
+
+	//---------------------------------------------------------------------------//
 
 protected:
 	virtual FText ResolveText(FText SourceText) const
