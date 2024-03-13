@@ -10,17 +10,17 @@
 #include "CodeFileGenerator.h"
 #include "CodeGenerator.h"
 
-void ArticyTypeGenerator::GenerateCode(const UArticyImportData* Data)
+void ArticyTypeGenerator::GenerateCode(const UArticyImportData* Data, FString& OutFile)
 {
 	if(!ensure(Data))
 		return;
 
-	const auto filename = CodeGenerator::GetArticyTypeClassname(Data, true);
-	CodeFileGenerator(filename + ".h", true, [&](CodeFileGenerator* header)
+	OutFile = CodeGenerator::GetArticyTypeClassname(Data, true);
+	CodeFileGenerator(OutFile + ".h", true, [&](CodeFileGenerator* header)
 	{
 		header->Line("#include \"CoreUObject.h\"");
 		header->Line("#include \"ArticyRuntime/Public/ArticyTypeSystem.h\"");
-		header->Line("#include \"" + filename + ".generated.h\"");
+		header->Line("#include \"" + OutFile + ".generated.h\"");
 
 		header->Line();
 

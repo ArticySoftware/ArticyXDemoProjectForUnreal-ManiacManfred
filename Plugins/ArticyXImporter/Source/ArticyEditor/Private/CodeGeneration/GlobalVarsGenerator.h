@@ -13,7 +13,7 @@ struct FArticyGVInfo;
 class GlobalVarsGenerator
 {
 public:
-	static void GenerateCode(const UArticyImportData* Data);
+	static void GenerateCode(const UArticyImportData* Data, FString& OutFile);
 	static void GenerateAsset(const UArticyImportData* Data);
 
 private:

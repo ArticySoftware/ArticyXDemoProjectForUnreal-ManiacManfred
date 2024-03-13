@@ -1,3 +1,20 @@
-## Unreal Importer 1.0.0 Changelog : 
+## Unreal Importer 1.0.1 Changelog : 
+
+- New Features
+	- Maintain data clones across world partitions
+	- Allow escaping of rich text markup
+	- Importing of voice over assets
+	- Localisation of display names
+- Changes:
+	- Clean up removed classes from generated code
+	- Abtract localisation out of interfaces
+	- Log clones as normal events in runtime category
+- Fixes:
+	- Fixed crash on invalid rich text markup
+	- Fixed hot reload crashing issue
+	- Fixed incorrect localisation mappings in Slate UI
+	- Fixed issues with some text extension variables
+
+## Unreal Importer 1.0.0 Changelog :
 
 - Support for articy:draft X

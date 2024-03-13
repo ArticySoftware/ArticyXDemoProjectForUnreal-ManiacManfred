@@ -7,9 +7,10 @@
 #include "ObjectDefinitionsImport.h"
 #include "ArticyImportData.h"
 
-void InterfacesGenerator::GenerateCode(const UArticyImportData* Data)
+void InterfacesGenerator::GenerateCode(const UArticyImportData* Data, FString& OutFile)
 {
-	CodeFileGenerator(CodeGenerator::GetGeneratedInterfacesFilename(Data)+".h", true, [&](CodeFileGenerator* header)
+	OutFile = CodeGenerator::GetGeneratedInterfacesFilename(Data);
+	CodeFileGenerator(OutFile + ".h", true, [&](CodeFileGenerator* header)
 	{
 		header->Line("#include \"CoreUObject.h\"");
 		if(Data->GetObjectDefs().GetFeatures().Num() > 0)

@@ -19,6 +19,7 @@ While full support is not guaranteed for this product, we're constantly working 
   * [Using the Flow Player](#articy-flow-player)
   * [Custom Script Methods](#custom-script-methods)
   * [Multiple Global Variable Sets](#multiple-global-variable-sets)
+* [Compatibility](#compatibility)
 * [Common Issues](#common-issues)
 
 # Features
@@ -34,11 +35,11 @@ This importer provides a working foundation for integrating articy:draft X conte
 
 # Setup
 
-There are a couple of steps needed to get the importer up and running. The Unreal project must be C++ compatible, therefore please ensure that the required tools are installed, such as Visual Studio for Windows or XCode for Mac.
+A couple of steps are needed to get the importer up and running. The Unreal project must be C++ compatible, therefore please ensure that the required tools are installed, such as Visual Studio for Windows or XCode for Mac.
 
 To find out more about how to set up Visual Studio, click [here](https://docs.unrealengine.com/en-US/Programming/Development/VisualStudioSetup/index.html).
 
-Following options are available when first using the importer:
+The following options are available when first using the importer:
 
 ## Create a new project
 
@@ -69,7 +70,8 @@ Click Next, name the class "MyActor" and finish the setup. Unreal Engine should 
 You can decide to get the plugin at the [Unreal Engine marketplace](https://www.unrealengine.com/marketplace/en-US/product/articy-draft-importer) as an Engine plugin, or alternatively here via GitHub as a project-based plugin. Functionally, there are no differences.
 
 ### Project-based plugin
-*Unreal Engine 4.19 and below: use [the respectively tagged version](https://github.com/ArticySoftware/ArticyXImporterForUnreal/releases) of the importer*
+
+If you want to use the plugin with UE 4.27 / 4.28 or want to use the articy:draft 3 plugin within the same engine version you need to do the following
 
 Get a copy of the importer and copy it into your projects **Plugins** folder. It is possible that you don't have one if it is a new project, so you can just create it.
 Copy the folder **ArticyXImporter** into this **Plugins** folder. Your project structure should now look something like this.
@@ -116,7 +118,7 @@ The first time the ArticyXImporter find content to import, the plugin will autom
 - **"No"** will continue import (no modification to Unreal build files). 
 - **"Cancel"** will abort import process.
 
-> NOTE : The automatic verification process can be disabled inside the project settings > Plugins > Articy X Importer (uncheck "Verify ArticyRuntime reference inside Unreal Build tools"). 
+> NOTE: The automatic verification process can be disabled inside the project settings > Plugins > Articy X Importer (uncheck "Verify ArticyRuntime reference inside Unreal Build tools"). 
 
 After every export, going back to Unreal will trigger the ArticyXImporter plugin to automatically parse the new file and show a prompt to import the changes. While this option is generally robust, there are certain cases in which more control over the import process is required.
 
@@ -130,14 +132,14 @@ For greater control over your imports, use the Articy X Importer Menu. It can be
 
 ### Importer Modes
 
-- **Full Reimport**: This option will always regenerate code and compile it, and afterwards generate the articy assets
+- **Full Reimport**: This option will always regenerate code and compile it, and afterward generate the articy assets
 - **Import Changes**: This option will only regenerate code and compile it if necessary, but will always regenerate assets. This is generally faster than a full reimport and is the same as clicking on 'Import' on the prompt Unreal shows you when you've exported.
 - **Regenerate Assets**: This option will only regenerate the articy assets based on the current import data asset and compiled code.
 
 # Using the API
 
 Now that the importer is installed and your project data is imported you can start working on your project. 
-Here are some quick tips at what to look for so you won't go in completely blind:
+Here are some quick tips on what to look for so you won't go in completely blind:
 
 ## Assigning an ArticyRef
 
@@ -158,7 +160,7 @@ A simple setup that prints the display name of the selected ArticyObject is show
 
 There are many other ways to access your objects, check this screenshot for a blueprint sample code showing you how to access an object by id/technical or directly clone it. The ArticyDatabase is the central object that lets you access all imported articy data. Even the 'Get Object' function above makes use of the ArticyDatabase.
 
-Also make sure to cast the object to the desired type to get access to its properties and its template.
+Also, make sure to cast the object to the desired type to get access to its properties and its template.
 
 <p align="center">
   <img src="https://www.articy.com/articy-importer/unreal/adx/get_object.png">
@@ -478,6 +480,10 @@ FArticyEditorModule::Get().GetCustomizationManager()->RegisterArticyIdPropertyWi
 # Contributing
 
 We are very grateful for any kind of contribution that you bring to the ArticyXImporter, no matter if it is reporting any issues, or by actively adding new features, or fixing existing issues. If you want to know more about how to contribute please check our [Contribution](https://github.com/ArticySoftware/ArticyXImporterForUnreal/blob/master/CONTRIBUTING.md) article.
+
+# Compatibility
+
+It is not possible to have both [ArticyXImporter for Unreal Engine](https://github.com/ArticySoftware/ArticyXImporterForUnreal) and [ArticyImporter for Unreal Engine](https://github.com/ArticySoftware/Articy3ImporterForUnreal) installed in the same engine or project. If you need to use both on the same engine installation, then you need to install the relevant plugin at the [project level](#project-based-plugin). 
 
 # Common Issues
 

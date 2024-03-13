@@ -25,27 +25,8 @@ public:
 	virtual FText GetMenuText()
 	{
 		static const auto PropName = FName("MenuText");
-		FText& Key = GetProperty<FText>(PropName);
-		const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
-
-		// Look up entry in specified string table
-		TOptional<FString> TableName = FTextInspector::GetNamespace(Key);
-		if (!TableName.IsSet())
-		{
-			TableName = TEXT("ARTICY");
-		}
-		const FText SourceString = FText::FromStringTable(
-			FName(TableName.GetValue()),
-			Key.ToString(),
-			EStringTableLoadingPolicy::FindOrFullyLoad);
-		const FString Decoded = SourceString.ToString();
-		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
-		{
-			return ResolveText(SourceString);
-		}
-
-		// By default, return ...
-		return FText::FromString("...");
+		static const auto BackupText = FText::FromString("...");
+		return GetStringText(Cast<UObject>(this), PropName, &BackupText);
 	}
 
 	virtual const FText GetMenuText() const
@@ -60,11 +41,5 @@ public:
 	{
 		static const auto PropName = FName("MenuText");
 		return GetProperty<FText>(PropName) = MenuText;
-	}
-
-protected:
-	virtual FText ResolveText(FText SourceText) const
-	{
-		return UArticyTextExtension::Get()->Resolve(SourceText);
 	}
 };

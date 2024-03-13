@@ -6,6 +6,7 @@
 #include "ArticyDatabase.h"
 #include "ArticyGlobalVariables.h"
 #include "ArticyTypeSystem.h"
+#include "ArticyHelpers.h"
 
 UArticyTextExtension* UArticyTextExtension::Get()
 {
@@ -20,7 +21,7 @@ UArticyTextExtension* UArticyTextExtension::Get()
 }
 
 // Retrieve string from specified source
-FString UArticyTextExtension::GetSource(const FString& SourceName) const
+FString UArticyTextExtension::GetSource(UObject* Outer, const FString& SourceName) const
 {
 	// Split the SourceName by dots
 	TArray<FString> SourceParts;
@@ -54,7 +55,7 @@ FString UArticyTextExtension::GetSource(const FString& SourceName) const
 			ArgsString.ParseIntoArray(Args, TEXT(","), true);
 
 			// Execute the method
-			return ExecuteMethod(FText::FromString(Method), Args);
+			return ExecuteMethod(Outer, FText::FromString(Method), Args);
 		}
 	}
 	else
@@ -91,7 +92,7 @@ FString UArticyTextExtension::GetSource(const FString& SourceName) const
 
 	// Process Global Variables
 	const FArticyGvName GvName = FArticyGvName(FName(SourceParts[0]), FName(RemValue));
-	GetGlobalVariable(SourceName, GvName, Result, bSuccess);
+	GetGlobalVariable(Outer, SourceName, GvName, Result, bSuccess);
 	if (bSuccess)
 	{
 		return Result;
@@ -106,7 +107,7 @@ FString UArticyTextExtension::GetSource(const FString& SourceName) const
 	}
 
 	// Process Objects & Script Properties
-	GetObjectProperty(SourceName, SourceParts[0], RemValue, bRequestType, Result, bSuccess);
+	GetObjectProperty(Outer, SourceName, SourceParts[0], RemValue, bRequestType, Result, bSuccess);
 	if (bSuccess)
 	{
 		return Result;
@@ -178,9 +179,18 @@ FString UArticyTextExtension::FormatNumber(const FString& SourceValue, const FSt
 }
 
 // Process Global Variables
-void UArticyTextExtension::GetGlobalVariable(const FString& SourceName, FArticyGvName GvName, FString& OutString, bool& OutSuccess) const
+void UArticyTextExtension::GetGlobalVariable(UObject* Outer, const FString& SourceName, FArticyGvName GvName, FString& OutString, bool& OutSuccess) const
 {
-	const auto DB = UArticyDatabase::Get(this);
+	const auto WorldContext = GEngine->GetWorldFromContextObject(Outer, EGetWorldErrorMode::ReturnNull);
+	if (!WorldContext)
+	{
+		// Cannot use this context
+		OutString = SourceName;
+		OutSuccess = false;
+		return;
+	}
+
+	const auto DB = UArticyDatabase::Get(Outer);
 	const auto GlobalVariables = DB->GetGVs();
 	const auto Set = GlobalVariables->GetNamespace(GvName.GetNamespace());
 	if (!Set)
@@ -197,7 +207,7 @@ void UArticyTextExtension::GetGlobalVariable(const FString& SourceName, FArticyG
 			const auto boolValue = GlobalVariables->GetBoolVariable(GvName, OutSuccess);
 			if (OutSuccess)
 			{
-				OutString = ResolveBoolean(SourceName, boolValue);
+				OutString = ResolveBoolean(Outer, SourceName, boolValue);
 			}
 			break;
 		}
@@ -219,8 +229,17 @@ void UArticyTextExtension::GetGlobalVariable(const FString& SourceName, FArticyG
 	}
 }
 
-void UArticyTextExtension::GetObjectProperty(const FString& SourceName, const FString& NameOrId, const FString& PropertyName, const bool bRequestType, FString& OutString, bool& OutSuccess) const
+void UArticyTextExtension::GetObjectProperty(UObject* Outer, const FString& SourceName, const FString& NameOrId, const FString& PropertyName, const bool bRequestType, FString& OutString, bool& OutSuccess) const
 {
+	const auto WorldContext = GEngine->GetWorldFromContextObject(Outer, EGetWorldErrorMode::ReturnNull);
+	if (!WorldContext)
+	{
+		// Cannot use this context
+		OutString = SourceName;
+		OutSuccess = false;
+		return;
+	}
+
 	// Get the object
 	const auto DB = UArticyDatabase::Get(this);
 	UArticyObject* Object;
@@ -258,7 +277,7 @@ void UArticyTextExtension::GetObjectProperty(const FString& SourceName, const FS
 	switch (PropertyType.Type) {
 	case ExpressoType::Bool:
 		{
-			OutString = ResolveBoolean(SourceName, PropertyType.GetBool());
+			OutString = ResolveBoolean(Outer, SourceName, PropertyType.GetBool());
 			OutSuccess = true;
 			break;
 		}
@@ -315,13 +334,14 @@ void UArticyTextExtension::GetTypeProperty(const FString& TypeName, const FStrin
 	OutSuccess = true;
 }
 
-FString UArticyTextExtension::ExecuteMethod(const FText& Method, const TArray<FString>& Args) const
+FString UArticyTextExtension::ExecuteMethod(UObject* Outer, const FText& Method, const TArray<FString>& Args) const
 {
 	if (Method.ToString() == TEXT("if"))
 	{
 		if (Args.Num() >= 3)
 		{
-			const FText ResolveResult = Resolve(FText::FromString(Args[0]), *Args[1], TEXT("0"));
+			const FText& ResolveString = FText::FromString(Args[0]);
+			const FText& ResolveResult = Resolve(Outer, &ResolveString, *Args[1], TEXT("0"));
             
 			if (ResolveResult.ToString() == TEXT("1"))
 			{
@@ -334,7 +354,8 @@ FString UArticyTextExtension::ExecuteMethod(const FText& Method, const TArray<FS
 	{
 		if (Args.Num() >= 3)
 		{
-			const FText ResolveResult = Resolve(FText::FromString(Args[0]), *Args[1], TEXT("0"));
+			const FText& ResolveString = FText::FromString(Args[0]);
+			const FText& ResolveResult = Resolve(Outer, &ResolveString, *Args[1], TEXT("0"));
             
 			if (ResolveResult.ToString() == TEXT("1"))
 			{
@@ -374,7 +395,7 @@ EArticyObjectType UArticyTextExtension::GetObjectType(UArticyVariable** Object) 
 	return EArticyObjectType::Other;
 }
 
-FString UArticyTextExtension::ResolveBoolean(const FString &SourceName, const bool Value) const
+FString UArticyTextExtension::ResolveBoolean(UObject* Outer, const FString &SourceName, const bool Value) const
 {
 	FString SourceValue;
 	FString SourceInput[2];
@@ -382,12 +403,12 @@ FString UArticyTextExtension::ResolveBoolean(const FString &SourceName, const bo
 	if (Value)
 	{
 		SourceInput[1] = TEXT("True");
-		SourceValue = LocalizeString(FString::Join(SourceInput, TEXT(".")));		
+		SourceValue = LocalizeString(Outer, FString::Join(SourceInput, TEXT(".")));		
 	}
 	else
 	{
 		SourceInput[1] = TEXT("False");
-		SourceValue = LocalizeString(FString::Join(SourceInput, TEXT(".")));		
+		SourceValue = LocalizeString(Outer, FString::Join(SourceInput, TEXT(".")));		
 	}
 	if (!SourceValue.IsEmpty())
 	{
@@ -397,11 +418,11 @@ FString UArticyTextExtension::ResolveBoolean(const FString &SourceName, const bo
 	FString VariableConstants;
 	if (Value)
 	{
-		VariableConstants = LocalizeString(TEXT("VariableConstants.Boolean.True"));		
+		VariableConstants = LocalizeString(Outer, TEXT("VariableConstants.Boolean.True"));		
 	}
 	else
 	{
-		VariableConstants = LocalizeString(TEXT("VariableConstants.Boolean.False"));
+		VariableConstants = LocalizeString(Outer, TEXT("VariableConstants.Boolean.False"));
 	}
 	if (!VariableConstants.IsEmpty())
 	{
@@ -416,28 +437,10 @@ FString UArticyTextExtension::ResolveBoolean(const FString &SourceName, const bo
 	return TEXT("false");
 }
 
-FString UArticyTextExtension::LocalizeString(const FString& Input) const
+FString UArticyTextExtension::LocalizeString(UObject* Outer, const FString& Input) const
 {
-	const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
-
-	// Look up entry in specified string table
-	TOptional<FString> TableName = FTextInspector::GetNamespace(FText::FromString(Input));
-	if (!TableName.IsSet())
-	{
-		TableName = TEXT("ARTICY");
-	}
-	const FText SourceString = FText::FromStringTable(
-		FName(TableName.GetValue()),
-		Input,
-		EStringTableLoadingPolicy::FindOrFullyLoad);
-	const FString Decoded = SourceString.ToString();
-	if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
-	{
-		return SourceString.ToString();
-	}
-
-	// By default, return empty
-	return TEXT("");
+	const FText Placeholder = FText::FromString(TEXT(""));
+	return ArticyHelpers::LocalizeString(Outer, FText::FromString(Input), false, &Placeholder).ToString();
 }
 
 void UArticyTextExtension::SplitInstance(const FString& InString, FString& OutName, FString& OutInstanceNumber)
