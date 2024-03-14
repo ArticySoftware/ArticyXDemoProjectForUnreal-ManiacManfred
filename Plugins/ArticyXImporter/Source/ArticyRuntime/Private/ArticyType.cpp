@@ -3,6 +3,7 @@
 //
 
 #include "ArticyType.h"
+#include "ArticyHelpers.h"
 
 FArticyEnumValueInfo FArticyType::GetEnumValue(int Value) const
 {
@@ -28,9 +29,9 @@ FArticyEnumValueInfo FArticyType::GetEnumValue(const FString& ValueName) const
 	return {};
 }
 
-FString FArticyType::GetFeatureDisplayName(const FString& FeatureName) const
+FString FArticyType::GetFeatureDisplayName(UObject* Outer, const FString& FeatureName) const
 {
-	return LocalizeString(FeatureName);
+	return LocalizeString(Outer, FeatureName);
 }
 
 FString FArticyType::GetFeatureDisplayNameLocaKey(const FString& FeatureName) const
@@ -61,28 +62,14 @@ FArticyPropertyInfo FArticyType::GetProperty(const FString& PropertyName) const
 	return {};
 }
 
-FString FArticyType::LocalizeString(const FString& Input)
+FString FArticyType::GetDisplayName(UObject* Outer)
 {
-	const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
+	return LocalizeString(Outer, LocaKey_DisplayName);
+}
 
-	// Look up entry in specified string table
-	TOptional<FString> TableName = FTextInspector::GetNamespace(FText::FromString(Input));
-	if (!TableName.IsSet())
-	{
-		TableName = TEXT("ARTICY");
-	}
-	const FText SourceString = FText::FromStringTable(
-		FName(TableName.GetValue()),
-		Input,
-		EStringTableLoadingPolicy::FindOrFullyLoad);
-	const FString Decoded = SourceString.ToString();
-	if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
-	{
-		return SourceString.ToString();
-	}
-
-	// By default, return input
-	return Input;
+FString FArticyType::LocalizeString(UObject* Outer, const FString& Input)
+{
+	return ArticyHelpers::LocalizeString(Outer, FText::FromString(Input)).ToString();
 }
 
 void FArticyType::MergeChild(const FArticyType& Child)
@@ -92,10 +79,6 @@ void FArticyType::MergeChild(const FArticyType& Child)
 	if (!Child.CPPType.IsEmpty())
 	{
 		CPPType = Child.CPPType;
-	}
-	if (!Child.DisplayName.IsEmpty())
-	{
-		DisplayName = Child.DisplayName;
 	}
 	if (!Child.LocaKey_DisplayName.IsEmpty())
 	{
@@ -126,10 +109,6 @@ void FArticyType::MergeParent(const FArticyType& Parent)
 	if (CPPType.IsEmpty())
 	{
 		CPPType = Parent.CPPType;
-	}
-	if (DisplayName.IsEmpty())
-	{
-		DisplayName = Parent.DisplayName;
 	}
 	if (LocaKey_DisplayName.IsEmpty())
 	{

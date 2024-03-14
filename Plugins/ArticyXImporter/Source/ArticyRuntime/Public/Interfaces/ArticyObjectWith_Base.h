@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ArticyReflectable.h"
+#include "ArticyHelpers.h"
 #include "ArticyObjectWith_Base.generated.h"
 
 UINTERFACE(MinimalAPI, meta=(CannotImplementInterfaceInBlueprint))
@@ -44,4 +45,11 @@ protected:
 		static PropType Empty;
 		return Empty;
 	}
+
+	FText GetStringText(UObject* Outer, const FName& PropName, const FText* BackupText = nullptr)
+	{
+		FText& Key = GetProperty<FText>(PropName);
+		return ArticyHelpers::LocalizeString(Outer, Key, true, BackupText);
+	}
+
 };

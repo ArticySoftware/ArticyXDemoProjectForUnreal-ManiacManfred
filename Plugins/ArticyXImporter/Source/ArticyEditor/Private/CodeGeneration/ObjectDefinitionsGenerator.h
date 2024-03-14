@@ -13,7 +13,7 @@ class UArticyImportData;
 class ObjectDefinitionsGenerator
 {
 public:
-	static void GenerateCode(const UArticyImportData* Data);
+	static void GenerateCode(const UArticyImportData* Data, FString& OutFile);
 
 private:
 	ObjectDefinitionsGenerator() {};

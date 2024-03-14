@@ -10,18 +10,18 @@
 #include "ExpressoScriptsGenerator.h"
 #include "ArticyImporterHelpers.h"
 
-void DatabaseGenerator::GenerateCode(const UArticyImportData* Data)
+void DatabaseGenerator::GenerateCode(const UArticyImportData* Data, FString& OutFile)
 {
 	if(!ensure(Data))
 		return;
 
-	const auto filename = CodeGenerator::GetDatabaseClassname(Data, true);
-	CodeFileGenerator(filename + ".h", true, [&](CodeFileGenerator* header)
+	OutFile = CodeGenerator::GetDatabaseClassname(Data, true);
+	CodeFileGenerator(OutFile + ".h", true, [&](CodeFileGenerator* header)
 	{
 		header->Line("#include \"CoreUObject.h\"");
 		header->Line("#include \"ArticyDatabase.h\"");
 		header->Line("#include \"" + ExpressoScriptsGenerator::GetFilename(Data) + "\"");
-		header->Line("#include \"" + filename + ".generated.h\"");
+		header->Line("#include \"" + OutFile + ".generated.h\"");
 		header->Line();
 
 		const auto className = CodeGenerator::GetDatabaseClassname(Data);

@@ -35,9 +35,6 @@ public:
 	TMap<int, FText> Constraints;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Articy")
-	FString DisplayName;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Articy")
 	bool IsTemplateProperty = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Articy")
@@ -58,21 +55,19 @@ struct ARTICYRUNTIME_API FArticyType
 public:
 	FArticyEnumValueInfo GetEnumValue(int Value) const;
 	FArticyEnumValueInfo GetEnumValue(const FString& ValueName) const;
-	FString GetFeatureDisplayName(const FString& FeatureName) const;
+	FString GetFeatureDisplayName(UObject* Outer, const FString& FeatureName) const;
 	FString GetFeatureDisplayNameLocaKey(const FString& FeatureName) const;
 	TArray<FArticyPropertyInfo> GetProperties() const;
 	TArray<FArticyPropertyInfo> GetPropertiesInFeature(const FString& FeatureName) const;
 	FArticyPropertyInfo GetProperty(const FString& PropertyName) const;
-	static FString LocalizeString(const FString& Input);
+	static FString LocalizeString(UObject* Outer, const FString& Input);
+	FString GetDisplayName(UObject* WorldContext);
 
 	void MergeChild(const FArticyType& Child);
 	void MergeParent(const FArticyType& Parent);
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Articy")
 	FString CPPType;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Articy")
-	FString DisplayName;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Articy")
 	TArray<FArticyEnumValueInfo> EnumValues;

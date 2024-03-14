@@ -29,27 +29,7 @@ public:
 	virtual FText GetText()
 	{
 		static const auto PropName = FName("Text");
-		FText& Key = GetProperty<FText>(PropName);
-		const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
-
-		// Look up entry in specified string table
-		TOptional<FString> TableName = FTextInspector::GetNamespace(Key);
-		if (!TableName.IsSet())
-		{
-			TableName = TEXT("ARTICY");
-		}
-		const FText SourceString = FText::FromStringTable(
-			FName(TableName.GetValue()),
-			Key.ToString(),
-			EStringTableLoadingPolicy::FindOrFullyLoad);
-		const FString Decoded = SourceString.ToString();
-		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
-		{
-			return ResolveText(SourceString);
-		}
-
-		// By default, return via the key
-		return ResolveText(Key);
+		return GetStringText(Cast<UObject>(this), PropName);
 	}
 
 	virtual FText GetText() const
@@ -87,11 +67,12 @@ public:
 		const FString Decoded = SourceString.ToString();
 		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
 		{
-			AssetId = FArticyId{ ResolveText(SourceString).ToString() };
+			AssetId = FArticyId{ ResolveText(WorldContext, &SourceString).ToString() };
 		}
 		else
 		{
-			AssetId = FArticyId{ ResolveText(FText::FromString(Key.ToString() + ".VOAsset")).ToString() };
+			const auto& AssetString = FText::FromString(Key.ToString() + ".VOAsset");
+			AssetId = FArticyId{ ResolveText(WorldContext, &AssetString).ToString() };
 		}
 
 		const UArticyDatabase* Database = UArticyDatabase::Get(WorldContext);
@@ -112,11 +93,8 @@ public:
 		return const_cast<IArticyObjectWithText*>(this)->GetVOAsset();
 	}
 
-	//---------------------------------------------------------------------------//
-
-protected:
-	virtual FText ResolveText(FText SourceText) const
+	virtual FText ResolveText(UObject* Outer, const FText* SourceText)
 	{
-		return UArticyTextExtension::Get()->Resolve(SourceText);
+		return ArticyHelpers::ResolveText(Outer, SourceText);
 	}
 };

@@ -22,13 +22,13 @@ class IArticyObjectWithDisplayName : public IArticyObjectWith_Base
 public:
 
 	UFUNCTION(BlueprintCallable, Category="ArticyObjectWithDisplayName")
-	virtual FText& GetDisplayName()
+	virtual FText GetDisplayName()
 	{
 		static const auto PropName = FName("DisplayName");
-		return GetProperty<FArticyMultiLanguageString>(PropName).Text;
+		return GetStringText(Cast<UObject>(this), PropName);
 	}
 
-	virtual const FText& GetDisplayName() const
+	virtual const FText GetDisplayName() const
 	{
 		return const_cast<IArticyObjectWithDisplayName*>(this)->GetDisplayName();
 	}

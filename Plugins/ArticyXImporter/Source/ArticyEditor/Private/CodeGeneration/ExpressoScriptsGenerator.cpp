@@ -168,13 +168,14 @@ void GenerateExpressoScripts(CodeFileGenerator* header, const UArticyImportData*
 	header->Line("#endif");
 }
 
-void ExpressoScriptsGenerator::GenerateCode(const UArticyImportData* Data)
+void ExpressoScriptsGenerator::GenerateCode(const UArticyImportData* Data, FString& OutFile)
 {
 	// Determine if we want to make the user methods blueprintable.
 	// (if true, we use a different naming to allow something like overloaded functions)
 	bool bCreateBlueprintableUserMethods = UArticyPluginSettings::Get()->bCreateBlueprintTypeForScriptMethods;
 
-	CodeFileGenerator(GetFilename(Data), true, [&](CodeFileGenerator* header)
+	const auto filename = GetFilename(Data);
+	CodeFileGenerator(filename, true, [&](CodeFileGenerator* header)
 	{
 		header->Line("#include \"CoreUObject.h\"");
 		header->Line("#include \"ArticyRuntime/Public/ArticyExpressoScripts.h\"");
@@ -204,6 +205,7 @@ void ExpressoScriptsGenerator::GenerateCode(const UArticyImportData* Data)
 
 		}, "BlueprintType, Blueprintable");
 	});
+	OutFile = filename.Replace(TEXT(".h"), TEXT(""));
 }
 
 FString ExpressoScriptsGenerator::GetFilename(const UArticyImportData* Data)

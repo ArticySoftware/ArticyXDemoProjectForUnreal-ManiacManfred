@@ -173,9 +173,9 @@ void FArticyGVNamespace::ImportFromJson(const TSharedPtr<FJsonObject> JsonNamesp
 	const TArray<TSharedPtr<FJsonValue>>* varsJson;
 	if (!JsonNamespace->TryGetArrayField(TEXT("Variables"), varsJson))
 		return;
-	for (const auto varJson : *varsJson)
+	for (const auto& varJson : *varsJson)
 	{
-		const auto obj = varJson->AsObject();
+		const auto& obj = varJson->AsObject();
 		if (!obj.IsValid())
 			continue;
 
@@ -192,9 +192,9 @@ void FArticyGVInfo::ImportFromJson(const TArray<TSharedPtr<FJsonValue>>* Json, c
 	if (!Json)
 		return;
 
-	for (const auto nsJson : *Json)
+	for (const auto& nsJson : *Json)
 	{
-		const auto obj = nsJson->AsObject();
+		const auto& obj = nsJson->AsObject();
 		if (!obj.IsValid())
 			continue;
 
@@ -322,7 +322,7 @@ void FAIDScriptMethod::ImportFromJson(TSharedPtr<FJsonObject> Json, TSet<FString
 
 	if (Json->TryGetArrayField(TEXT("Parameters"), items))
 	{
-		for (const auto item : *items)
+		for (const auto& item : *items)
 		{
 			const TSharedPtr<FJsonObject>* obj;
 			if (!ensure(item->TryGetObject(obj))) continue;
@@ -370,9 +370,9 @@ void FAIDUserMethods::ImportFromJson(const TArray<TSharedPtr<FJsonValue>>* Json)
 
 	TSet<FString> OverloadedMethods;
 
-	for (const auto smJson : *Json)
+	for (const auto& smJson : *Json)
 	{
-		const auto obj = smJson->AsObject();
+		const auto& obj = smJson->AsObject();
 		if (!obj.IsValid())
 			continue;
 
@@ -412,7 +412,7 @@ UADIHierarchyObject* UADIHierarchyObject::CreateFromJson(UObject* Outer, const T
 	if (JsonObject->TryGetArrayField(TEXT("Children"), jsonChildren) && jsonChildren)
 	{
 		obj->Children.Reset(jsonChildren->Num());
-		for (auto jsonChild : *jsonChildren)
+		for (auto& jsonChild : *jsonChildren)
 		{
 			auto child = CreateFromJson(obj, jsonChild->AsObject());
 			obj->Children.Add(child);
@@ -623,51 +623,27 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 		}
 	}
 
+	// Add invariant if it does not exist
+	if (!Languages.Languages.Contains(TEXT("")))
+	{
+		const auto Iterator = Languages.Languages.CreateConstIterator();
+		const auto& Elem = *Iterator;
+		Languages.Languages.Add(TEXT(""), Elem.Value);
+	}
+
 	// Create string tables
 	if (!OldObjectDefintionsTextHash.Equals(Settings.ObjectDefinitionsTextHash))
 	{
-		for (const auto language : Languages.Languages)
+		for (const auto& Language : Languages.Languages)
 		{
-			StringTableGenerator(TEXT("ARTICY"), language.Key, [&](StringTableGenerator* CsvOutput)
+			StringTableGenerator(TEXT("ARTICY"), Language.Key, [&](StringTableGenerator* CsvOutput)
 			{
-				int Counter = 0;
-
-				// Handle object defs
-				for(const auto Text : GetObjectDefs().GetTexts())
-				{
-					// Send localized data or key, depending on whether data is available
-					if (Text.Value.Content.Num() > 0)
-					{
-						if (Text.Value.Content.Contains(language.Key))
-						{
-							// Specific language data
-							CsvOutput->Line(Text.Key, Text.Value.Content[language.Key].Text);
-							if (!Text.Value.Content[language.Key].VOAsset.IsEmpty())
-							{
-								CsvOutput->Line(Text.Key + ".VOAsset", Text.Value.Content[language.Key].VOAsset);
-							}
-						}
-						else
-						{
-							// Infer default from iterator
-							const auto Iterator = Text.Value.Content.CreateConstIterator();
-							const auto& Elem = *Iterator;
-							CsvOutput->Line(Text.Key, Elem.Value.Text);
-							if (!Elem.Value.VOAsset.IsEmpty())
-							{
-								CsvOutput->Line(Text.Key + ".VOAsset", Elem.Value.VOAsset);
-							}
-						}
-						Counter++;
-					}
-				}
-
-				return Counter > 0;
+				return ProcessStrings(CsvOutput, Language);
 			});
 		}
 	}
 
-	for (const auto language : Languages.Languages)
+	for (const auto& Language : Languages.Languages)
 	{
 		// Handle packages
 		for(const auto& Package : GetPackageDefs().GetPackages())
@@ -691,13 +667,13 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 				FString OldPath, NewPath;
 				const FString OldFilePath = TEXT("ArticyContent/Generated") / OldStringTableFileName;
 				const FString NewFilePath = TEXT("ArticyContent/Generated") / StringTableFileName;
-				if (language.Key.IsEmpty())
+				if (Language.Key.IsEmpty())
 				{
 					OldPath = FPaths::ProjectContentDir() / OldFilePath;
 					NewPath = FPaths::ProjectContentDir() / NewFilePath;
 				} else {
-					OldPath = FPaths::ProjectContentDir() / TEXT("L10N") / language.Key / OldFilePath;
-					NewPath = FPaths::ProjectContentDir() / TEXT("L10N") / language.Key / NewFilePath;
+					OldPath = FPaths::ProjectContentDir() / TEXT("L10N") / Language.Key / OldFilePath;
+					NewPath = FPaths::ProjectContentDir() / TEXT("L10N") / Language.Key / NewFilePath;
 				}
 				OldPath += TEXT(".csv");
 				NewPath += TEXT(".csv");
@@ -722,42 +698,10 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 			if (!Package.GetIsIncluded())
 				continue;
 			
-			StringTableGenerator(StringTableFileName, language.Key,
+			StringTableGenerator(StringTableFileName, Language.Key,
 				[&](StringTableGenerator* CsvOutput)
 			{
-				int Counter = 0;
-
-				// Handle object defs
-				for(const auto Text : GetPackageDefs().GetTexts(Package))
-				{
-					// Send localized data or key, depending on whether data is available
-					if (Text.Value.Content.Num() > 0)
-					{
-						if (Text.Value.Content.Contains(language.Key))
-						{
-							// Specific language data
-							CsvOutput->Line(Text.Key, Text.Value.Content[language.Key].Text);
-							if (!Text.Value.Content[language.Key].VOAsset.IsEmpty())
-							{
-								CsvOutput->Line(Text.Key + ".VOAsset", Text.Value.Content[language.Key].VOAsset);
-							}
-						}
-						else
-						{
-							// Infer default from iterator
-							const auto Iterator = Text.Value.Content.CreateConstIterator();
-							const auto& Elem = *Iterator;
-							CsvOutput->Line(Text.Key, Elem.Value.Text);
-							if (!Elem.Value.VOAsset.IsEmpty())
-							{
-								CsvOutput->Line(Text.Key + ".VOAsset", Elem.Value.VOAsset);
-							}
-						}
-						Counter++;
-					}
-				}
-
-				return Counter > 0;
+				return ProcessStrings(CsvOutput, Language);
 			});
 		}
 	}
@@ -803,6 +747,43 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 	}
 }
 
+int UArticyImportData::ProcessStrings(StringTableGenerator* CsvOutput, const TPair<FString, FArticyLanguageDef>& Language)
+{
+	int Counter = 0;
+
+	// Handle object defs
+	for (const auto& Text : GetObjectDefs().GetTexts())
+	{
+		// Send localized data or key, depending on whether data is available
+		if (Text.Value.Content.Num() > 0)
+		{
+			if (Text.Value.Content.Contains(Language.Key))
+			{
+				// Specific language data
+				CsvOutput->Line(Text.Key, Text.Value.Content[Language.Key].Text);
+				if (!Text.Value.Content[Language.Key].VOAsset.IsEmpty())
+				{
+					CsvOutput->Line(Text.Key + ".VOAsset", Text.Value.Content[Language.Key].VOAsset);
+				}
+			}
+			else
+			{
+				// Infer default from iterator
+				const auto Iterator = Text.Value.Content.CreateConstIterator();
+				const auto& Elem = *Iterator;
+				CsvOutput->Line(Text.Key, Elem.Value.Text);
+				if (!Elem.Value.VOAsset.IsEmpty())
+				{
+					CsvOutput->Line(Text.Key + ".VOAsset", Elem.Value.VOAsset);
+				}
+			}
+			Counter++;
+		}
+	}
+
+	return Counter > 0;
+}
+
 void UArticyImportData::ImportAudioAssets(const FString& BaseContentDir, const FString& SubDir)
 {
 	TArray<FString> FilesToImport;
@@ -828,6 +809,7 @@ void UArticyImportData::ImportAudioAssets(const FString& BaseContentDir, const F
 
 		// Check if the asset already exists in the asset registry
 		FAssetData AssetData = AssetRegistry.GetAssetByObjectPath(FName(*PackageFileName));
+
 		if (AssetData.IsValid())
 		{
 			// Check the timestamp to determine if the asset needs updating
@@ -837,11 +819,16 @@ void UArticyImportData::ImportAudioAssets(const FString& BaseContentDir, const F
 			UObject* Asset = CurrentAssetData.GetAsset();
 			if (Asset && Asset->GetOutermost())
 			{
-				const FDateTime AssetTimeStamp = IFileManager::Get().GetTimeStamp(*Asset->GetOutermost()->FileName.ToString());
-				if (SourceTimeStamp <= AssetTimeStamp)
-				{
-					// The asset is up-to-date; skip re-importing
-					continue;
+				FString PackagePathString;
+				if (FPackageName::TryConvertLongPackageNameToFilename(Asset->GetOutermost()->GetName(), PackagePathString)) {
+					FString FullFilePath = PackagePathString + TEXT(".uasset");
+
+					const FDateTime AssetTimeStamp = IFileManager::Get().GetTimeStamp(*FullFilePath);
+					if (SourceTimeStamp <= AssetTimeStamp)
+					{
+						// The asset is up-to-date; skip re-importing
+						continue;
+					}
 				}
 			}
 		}
@@ -956,7 +943,7 @@ void UArticyImportData::AddScriptFragment(const FString& Fragment, const bool bI
 
 	bool bCreateBlueprintableUserMethods = UArticyPluginSettings::Get()->bCreateBlueprintTypeForScriptMethods;
 
-	auto string = Fragment; //Fragment.Replace(TEXT("\n"), TEXT(""));
+	FString string = Fragment; //Fragment.Replace(TEXT("\n"), TEXT(""));
 	if (string.Len() > 0)
 	{
 		static TArray<FString> lines;
@@ -966,7 +953,7 @@ void UArticyImportData::AddScriptFragment(const FString& Fragment, const bool bI
 
 		string = TEXT("");
 		FString comments = TEXT("");
-		for (auto line : lines)
+		for (auto& line : lines)
 		{
 			//remove comment
 			//NOTE: this breaks once // is allowed in a string (i.e. in an object name)
@@ -992,7 +979,7 @@ void UArticyImportData::AddScriptFragment(const FString& Fragment, const bool bI
 		string = comments;
 		for (auto l = 0; l < lines.Num(); ++l)
 		{
-			auto line = lines[l];
+			auto& line = lines[l];
 
 			// since "line" gets modified after the literalStrings matcher was created
 			// we need to offset the values from the matcher based on the changes done to "line" in the loop

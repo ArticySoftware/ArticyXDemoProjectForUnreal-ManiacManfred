@@ -88,7 +88,7 @@ UArticyGlobalVariables* UArticyGlobalVariables::GetDefault(const UObject* WorldC
 {
 	if(!Clone.IsValid())
 	{
-		bool keepBetweenWorlds = UArticyPluginSettings::Get()->bKeepGlobalVariablesBetweenWorlds;
+		bool keepBetweenWorlds = UArticyPluginSettings::Get()->bKeepGlobalVariablesBetweenWorlds || WorldContext->GetWorld()->IsPartitionedWorld();
 
 		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 		TArray<FAssetData> AssetData;
@@ -111,7 +111,7 @@ UArticyGlobalVariables* UArticyGlobalVariables::GetDefault(const UObject* WorldC
 		if(!asset)
 			return nullptr;
 
-		UE_LOG(LogTemp, Warning, TEXT("Cloning GVs."));
+		UE_LOG(LogArticyRuntime, Log, TEXT("Cloning GVs."));
 
 		auto world = GEngine->GetWorldFromContextObjectChecked(WorldContext);
 		ensureMsgf(world, TEXT("Getting world for GV cloning failed!"));

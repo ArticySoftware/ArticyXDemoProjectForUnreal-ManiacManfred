@@ -13,6 +13,6 @@ struct FArticyGVInfo;
 class DatabaseGenerator
 {
 public:
-	static void GenerateCode(const UArticyImportData* Data);
+	static void GenerateCode(const UArticyImportData* Data, FString& OutFile);
 	static class UArticyDatabase* GenerateAsset(const UArticyImportData* Data);
 };
