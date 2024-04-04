@@ -68,7 +68,7 @@ StringTableGenerator::StringTableGenerator(const FString& TableName, const FStri
 	Line("Key", "SourceString");
 	bool bContentWritten = false;
 	if(ensure(!std::is_null_pointer<Lambda>::value))
-		bContentWritten = ContentGenerator(this);
+		bContentWritten = ContentGenerator(this) != 0;
 
 	if (bContentWritten)
 		WriteToFile();

@@ -12,7 +12,7 @@
 class ExpressoScriptsGenerator
 {
 public:
-	static void GenerateCode(const UArticyImportData* Data);
+	static void GenerateCode(const UArticyImportData* Data, FString& OutFile);
 	/** Returns the filename of the generated expresso scripts class (with extension). */
 	static FString GetFilename(const UArticyImportData* Data);
 };

@@ -36,7 +36,6 @@ void FArticyTemplateDef::ImportFromJson(const TSharedPtr<FJsonObject> JsonObject
 	ArticyType.HasTemplate = true;
 	ArticyType.TechnicalName = TechnicalName;
 	ArticyType.LocaKey_DisplayName = DisplayName;
-	ArticyType.DisplayName = FArticyType::LocalizeString(DisplayName);
 }
 
 void FArticyTemplateDef::GenerateFeaturesDefs(CodeFileGenerator& header, const UArticyImportData* Data) const
@@ -94,7 +93,6 @@ void FArticyObjectDef::ImportFromJson(const TSharedPtr<FJsonObject> JsonObjDef, 
 		FArticyPropertyInfo info;
 		FString name = prop.GetPropetyName().ToString();
 		info.LocaKey_DisplayName = name;
-		info.DisplayName = FArticyType::LocalizeString(name);
 		ArticyType.Properties.Add(info);
 	});
 
@@ -110,7 +108,6 @@ void FArticyObjectDef::ImportFromJson(const TSharedPtr<FJsonObject> JsonObjDef, 
 
 			FArticyEnumValueInfo info;
 			info.LocaKey_DisplayName = val.Name;
-			info.DisplayName = FArticyType::LocalizeString(val.Name);
 			info.Value = val.Value;
 			ArticyType.EnumValues.Add(info);
 		}
@@ -373,7 +370,6 @@ void FArticyPropertyDef::ImportFromJson(const TSharedPtr<FJsonObject> JsonProper
 	JSON_TRY_STRING(JsonProperty, Tooltip);
 
 	ArticyType.LocaKey_DisplayName = DisplayName;
-	ArticyType.DisplayName = FArticyType::LocalizeString(DisplayName);
 	ArticyType.CPPType = GetCppType(Data);
 }
 
@@ -527,13 +523,11 @@ void FArticyTemplateFeatureDef::ImportFromJson(const TSharedPtr<FJsonObject> Jso
 		FArticyPropertyInfo info;
 		FString name = prop.GetPropetyName().ToString();
 		info.LocaKey_DisplayName = name;
-		info.DisplayName = FArticyType::LocalizeString(name);
 		ArticyType.Properties.Add(info);
 	});
 
 	ArticyType.TechnicalName = TechnicalName;
 	ArticyType.LocaKey_DisplayName = DisplayName;
-	ArticyType.DisplayName = FArticyType::LocalizeString(DisplayName);
 	ArticyType.CPPType = GetCppType(Data, false);
 }
 

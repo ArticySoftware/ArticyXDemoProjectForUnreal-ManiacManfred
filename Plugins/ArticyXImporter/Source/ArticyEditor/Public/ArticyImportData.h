@@ -9,6 +9,7 @@
 #include "PackagesImport.h"
 #include "ArticyPackage.h"
 #include "ArticyArchiveReader.h"
+#include "StringTableGenerator.h"
 #include "ArticyImportData.generated.h"
 
 class UArticyImportData;
@@ -456,5 +457,6 @@ private:
 	TMap<FArticyId, FArticyIdArray> ParentChildrenCache;
 
 	void ImportAudioAssets(const FString& BaseContentDir, const FString& SubDir);
+	int ProcessStrings(StringTableGenerator* CsvOutput, const TPair<FString, FArticyLanguageDef>& Language);
 };
 

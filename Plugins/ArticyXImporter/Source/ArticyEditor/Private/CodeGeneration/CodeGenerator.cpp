@@ -96,6 +96,63 @@ bool CodeGenerator::DeleteGeneratedCode(const FString& Filename)
 	return FPlatformFileManager::Get().GetPlatformFile().DeleteFile(*(GetSourceFolder() / Filename));
 }
 
+bool CodeGenerator::DeleteExtraCode(const TArray<FString>& GeneratedFiles)
+{
+	const auto& SourceFolder = GetSourceFolder();
+	IFileManager& FileManager = IFileManager::Get();
+
+	// Create a directory visitor class
+	class FDirectoryVisitor : public IPlatformFile::FDirectoryVisitor
+	{
+	public:
+		TArray<FString> const& GeneratedFiles;
+		IFileManager& FileManager;
+
+		FDirectoryVisitor(TArray<FString> const& InGeneratedFiles, IFileManager& InFileManager)
+			: GeneratedFiles(InGeneratedFiles), FileManager(InFileManager) {}
+
+		virtual bool Visit(const TCHAR* FilenameOrDirectory, bool bIsDirectory) override
+		{
+			if (bIsDirectory)
+			{
+				// Continue searching
+				return true; 
+			}
+
+			FString FilePath(FilenameOrDirectory);
+			FString FileName = FPaths::GetCleanFilename(FilePath);
+
+			// Only applies to .h files - though there should not be anything else
+			if (FileName.EndsWith(TEXT(".h")))
+			{
+				// Check if the filename starts with any of the strings from the generated files
+				bool bShouldKeep = false;
+				for (const FString& Prefix : GeneratedFiles)
+				{
+					if (FileName.StartsWith(Prefix))
+					{
+						bShouldKeep = true;
+						break;
+					}
+				}
+
+				// Delete file if it does not match any prefix
+				if (!bShouldKeep)
+				{
+					return FileManager.Delete(*FilePath);
+				}
+			}
+
+			// Continue searching
+			return true;
+		}
+	};
+
+	// Use the directory visitor to iterate through the files in the source folder
+	FDirectoryVisitor Visitor(GeneratedFiles, FileManager);
+	return FileManager.IterateDirectory(*SourceFolder, Visitor);
+}
+
 void CodeGenerator::CacheCodeFiles()
 {
 	TArray<FString> FileNames;
@@ -129,20 +186,32 @@ bool CodeGenerator::GenerateCode(UArticyImportData* Data)
 	{
 		//DeleteGeneratedCode();
 
-		GlobalVarsGenerator::GenerateCode(Data);
-		DatabaseGenerator::GenerateCode(Data);
-		InterfacesGenerator::GenerateCode(Data);
-		ObjectDefinitionsGenerator::GenerateCode(Data);
+		TArray<FString> OutFiles;
+		FString OutFile;
+
+		GlobalVarsGenerator::GenerateCode(Data, OutFile);
+		OutFiles.Add(OutFile);
+		DatabaseGenerator::GenerateCode(Data, OutFile);
+		OutFiles.Add(OutFile);
+		InterfacesGenerator::GenerateCode(Data, OutFile);
+		OutFiles.Add(OutFile);
+		ObjectDefinitionsGenerator::GenerateCode(Data, OutFile);
+		OutFiles.Add(OutFile);
 		/* generate scripts as well due to them including the generated global variables
 		 * if we remove a GV set but don't regenerate expresso scripts, the resulting class won't compile */
-		ExpressoScriptsGenerator::GenerateCode(Data);
-		ArticyTypeGenerator::GenerateCode(Data);
+		ExpressoScriptsGenerator::GenerateCode(Data, OutFile);
+		OutFiles.Add(OutFile);
+		ArticyTypeGenerator::GenerateCode(Data, OutFile);
+		OutFiles.Add(OutFile);
+
 		bCodeGenerated = true;
+		DeleteExtraCode(OutFiles);
 	}
 	// if object defs of GVs didn't change, but scripts changed, regenerate only expresso scripts
 	else if (Data->GetSettings().DidScriptFragmentsChange())
 	{
-		ExpressoScriptsGenerator::GenerateCode(Data);
+		FString OutFile;
+		ExpressoScriptsGenerator::GenerateCode(Data, OutFile);
 		bCodeGenerated = true;
 	}
 

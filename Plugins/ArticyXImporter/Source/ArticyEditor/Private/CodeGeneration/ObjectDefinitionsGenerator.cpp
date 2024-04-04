@@ -7,9 +7,10 @@
 #include "ObjectDefinitionsImport.h"
 #include "ArticyImportData.h"
 
-void ObjectDefinitionsGenerator::GenerateCode(const UArticyImportData* Data)
+void ObjectDefinitionsGenerator::GenerateCode(const UArticyImportData* Data, FString& OutFile)
 {
-	CodeFileGenerator(CodeGenerator::GetGeneratedTypesFilename(Data)+".h", true, [&](CodeFileGenerator* header)
+	OutFile = CodeGenerator::GetGeneratedTypesFilename(Data);
+	CodeFileGenerator(OutFile + ".h", true, [&](CodeFileGenerator* header)
 	{
 		header->Line("#include \"CoreUObject.h\"");
 		header->Line("#include \"ArticyRuntime/Public/ArticyBaseInclude.h\"");

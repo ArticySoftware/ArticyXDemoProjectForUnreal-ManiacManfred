@@ -33,7 +33,8 @@ public:
 	template<typename... Types>
 	FText Resolve
 	(
-		const FText &Format,
+		UObject* Outer,
+		const FText* Format,
 		Types... Args
 	) const;
 
@@ -48,26 +49,32 @@ public:
 	void AddUserMethod(const FString& MethodName, FArticyUserMethodCallback Callback);
 
 protected:
-	FString GetSource(const FString &SourceName) const;
+	FString GetSource(UObject* Outer, const FString &SourceName) const;
 	FString FormatNumber(const FString &SourceValue, const FString &NumberFormat) const;
-	void GetGlobalVariable(const FString& SourceName, const FArticyGvName GvName, FString& OutString, bool& OutSuccess) const;
-	void GetObjectProperty(const FString& SourceName, const FString& NameOrId, const FString& PropertyName, const bool bRequestType, FString& OutString, bool& OutSuccess) const;
+	void GetGlobalVariable(UObject* Outer, const FString& SourceName, const FArticyGvName GvName, FString& OutString, bool& OutSuccess) const;
+	void GetObjectProperty(UObject* Outer, const FString& SourceName, const FString& NameOrId, const FString& PropertyName, const bool bRequestType, FString& OutString, bool& OutSuccess) const;
 	static void GetTypeProperty(const FString& TypeName, const FString& PropertyName, FString& OutString, bool& OutSuccess);
-	FString ExecuteMethod(const FText& Method, const TArray<FString>& Args) const;
+	FString ExecuteMethod(UObject* Outer, const FText& Method, const TArray<FString>& Args) const;
 	EArticyObjectType GetObjectType(UArticyVariable** Object) const;
-	FString ResolveBoolean(const FString &SourceName, const bool Value) const;
-	FString LocalizeString(const FString &Input) const;
+	FString ResolveBoolean(UObject* Outer, const FString &SourceName, const bool Value) const;
+	FString LocalizeString(UObject* Outer, const FString &Input) const;
 	static void SplitInstance(const FString& InString, FString& OutName, FString& OutInstanceNumber);
 
 	TMap<FString, FArticyUserMethodCallback> UserMethodMap;
 };
 
 template<typename ... Types>
-FText UArticyTextExtension::Resolve(const FText& Format, Types... Args) const
+FText UArticyTextExtension::Resolve(UObject* Outer, const FText* Format, Types... Args) const
 {
+	// Do not try to process null values
+	if (Format == nullptr)
+	{
+		return FText::GetEmpty();
+	}
+
 	TArray<FString> ArgumentValues = {FString::Printf(TEXT("%s"), Args)...};
     
-	FString FormattedString = Format.ToString();
+	FString FormattedString = Format->ToString();
 
 	// Regular placeholder replacement
 	for (int32 ArgIndex = 0; ArgIndex < ArgumentValues.Num(); ++ArgIndex)
@@ -100,7 +107,7 @@ FText UArticyTextExtension::Resolve(const FText& Format, Types... Args) const
 		if (!SourceName.IsEmpty())
 		{
 			// Get value from source
-			FString SourceValue = GetSource(SourceName);
+			FString SourceValue = GetSource(Outer, SourceName);
             
 			if (!Formatting.IsEmpty())
 			{

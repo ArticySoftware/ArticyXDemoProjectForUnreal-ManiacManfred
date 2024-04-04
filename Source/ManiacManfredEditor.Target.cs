@@ -4,10 +4,10 @@ using UnrealBuildTool;
 using System.Collections.Generic;
 public class ManiacManfredEditorTarget : TargetRules
 {
-    public ManiacManfredEditorTarget(TargetInfo Target) : base(Target)
-    {
-        Type = TargetType.Editor;
-        DefaultBuildSettings = BuildSettingsVersion.V4;
+	public ManiacManfredEditorTarget(TargetInfo Target) : base(Target)
+	{
+		Type = TargetType.Editor;
+		DefaultBuildSettings = BuildSettingsVersion.V4;
 		ExtraModuleNames.AddRange( new string[] { "ManiacManfred" } );
         IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_3;
     }
