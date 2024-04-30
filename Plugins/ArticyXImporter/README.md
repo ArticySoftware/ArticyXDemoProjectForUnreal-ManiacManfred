@@ -20,6 +20,9 @@ While full support is not guaranteed for this product, we're constantly working 
   * [Custom Script Methods](#custom-script-methods)
   * [Multiple Global Variable Sets](#multiple-global-variable-sets)
 * [Compatibility](#compatibility)
+* [Automation](#automation)
+  * [Options](#options)
+  * [Example Usage](#example-usage)
 * [Common Issues](#common-issues)
 
 # Features
@@ -484,6 +487,35 @@ We are very grateful for any kind of contribution that you bring to the ArticyXI
 # Compatibility
 
 It is not possible to have both [ArticyXImporter for Unreal Engine](https://github.com/ArticySoftware/ArticyXImporterForUnreal) and [ArticyImporter for Unreal Engine](https://github.com/ArticySoftware/Articy3ImporterForUnreal) installed in the same engine or project. If you need to use both on the same engine installation, then you need to install the relevant plugin at the [project level](#project-based-plugin). 
+
+# Automation
+
+The ArticyImport commandlet can be integrated into automation scripts using the `-run` switch of `UE4Editor-Cmd.exe`, allowing for seamless automation of data import into your projects. This section outlines how to incorporate the commandlet with optional switches to enhance automation.
+
+To integrate the ArticyImport commandlet into your build pipeline script. Use the `-run=ArticyImport` option with `UE4Editor-Cmd.exe` to execute the commandlet with the desired options.
+
+## Options
+
+The default behavior is to import changes, but the ArticyImport commandlet also supports the following optional switches:
+
+- `ArticyReimport`: Forces a complete reimport of data.
+- `ArticyRegenerate`: Regenerates assets.
+
+These switches offer additional control over the import process, allowing for specific actions during automation.
+
+## Example Usage
+
+```bash
+UE4Editor-Cmd.exe <PathToGame.uproject> -run=ArticyImport -ArticyReimport -ArticyRegenerate
+```
+
+In the above example:
+
+- PathToGame.uproject should be replaced with the path to your Unreal Engine project file.
+- -ArticyReimport flag forces a complete reimport of data.
+- -ArticyRegenerate flag regenerates assets.
+
+Adjust the command according to your project's specific requirements.
 
 # Common Issues
 

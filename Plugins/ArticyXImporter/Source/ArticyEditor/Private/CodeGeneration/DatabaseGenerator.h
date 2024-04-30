@@ -6,6 +6,7 @@
 
 class UArticyImportData;
 struct FArticyGVInfo;
+class FString;
 
 /**
  * Generates the project specific Articy Database class.

@@ -12,13 +12,17 @@
 #include "HAL/FileManager.h"
 #include "Misc/Paths.h"
 
-void FArticyEditorFunctionLibrary::ForceCompleteReimport(UArticyImportData* ImportData)
+int32 FArticyEditorFunctionLibrary::ForceCompleteReimport(UArticyImportData* ImportData)
 {
 	const EImportDataEnsureResult Result = EnsureImportDataAsset(&ImportData);
 	// if we generated the import data asset we will cause a full reimport, so stop here
-	if (Result == EImportDataEnsureResult::Generation || Result == EImportDataEnsureResult::Failure)
+	if (Result == EImportDataEnsureResult::Generation)
 	{
-		return;
+		return 0;
+	}
+	if (Result == EImportDataEnsureResult::Failure)
+	{
+		return -1;
 	}
 
 	ImportData->Settings.GlobalVariablesHash.Reset();
@@ -26,36 +30,48 @@ void FArticyEditorFunctionLibrary::ForceCompleteReimport(UArticyImportData* Impo
 	ImportData->Settings.ObjectDefinitionsTextHash.Reset();
 	ImportData->Settings.ScriptFragmentsHash.Reset();
 	ImportData->PackageDefs.ResetPackages();
-	ReimportChanges(ImportData);
+	return ReimportChanges(ImportData);
 }
 
-void FArticyEditorFunctionLibrary::ReimportChanges(UArticyImportData* ImportData)
+int32 FArticyEditorFunctionLibrary::ReimportChanges(UArticyImportData* ImportData)
 {
 	const EImportDataEnsureResult Result = EnsureImportDataAsset(&ImportData);
 	// if we generated the import data asset we will cause a full reimport, so stop here
-	if (Result == EImportDataEnsureResult::Generation || Result == EImportDataEnsureResult::Failure)
+	if (Result == EImportDataEnsureResult::Generation)
 	{
-		return;
+		return 0;
+	}
+	if (Result == EImportDataEnsureResult::Failure)
+	{
+		return -1;
 	}
 
 	const auto Factory = NewObject<UArticyJSONFactory>();
 	if (Factory)
 	{
-		Factory->Reimport(ImportData);
+		return Factory->Reimport(ImportData) - 1;
 		//GC will destroy factory
 	}
+
+	return -1;
 }
 
-void FArticyEditorFunctionLibrary::RegenerateAssets(UArticyImportData* ImportData)
+int32 FArticyEditorFunctionLibrary::RegenerateAssets(UArticyImportData* ImportData)
 {
 	const EImportDataEnsureResult Result = EnsureImportDataAsset(&ImportData);
 	// if we generated the import data asset we will cause a full reimport, so stop here
-	if (Result == EImportDataEnsureResult::Generation || Result == EImportDataEnsureResult::Failure)
+	if (Result == EImportDataEnsureResult::Generation)
 	{
-		return;
+		return 0;
+	}
+	if (Result == EImportDataEnsureResult::Failure)
+	{
+		return -1;
 	}
 
 	CodeGenerator::GenerateAssets(ImportData);
+
+	return -1;
 }
 
 EImportDataEnsureResult FArticyEditorFunctionLibrary::EnsureImportDataAsset(UArticyImportData** ImportData)

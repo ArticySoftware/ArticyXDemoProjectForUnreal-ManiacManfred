@@ -22,9 +22,9 @@ class ARTICYEDITOR_API FArticyEditorFunctionLibrary
 {
 	
 public:
-	static void ForceCompleteReimport(UArticyImportData* = nullptr);
-	static void ReimportChanges(UArticyImportData* = nullptr);
-	static void RegenerateAssets(UArticyImportData* = nullptr);
+	static int32 ForceCompleteReimport(UArticyImportData* = nullptr);
+	static int32 ReimportChanges(UArticyImportData* = nullptr);
+	static int32 RegenerateAssets(UArticyImportData* = nullptr);
 	static EImportDataEnsureResult EnsureImportDataAsset(UArticyImportData**);
 
 private:

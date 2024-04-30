@@ -19,10 +19,4 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
-
-	void LoadStringTables(bool);
-
-private:
-	void IterateStringTables(const FString& DirectoryPath) const;
-	void OnCultureChanged();
 };

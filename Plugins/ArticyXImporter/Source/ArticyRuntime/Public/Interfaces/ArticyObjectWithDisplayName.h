@@ -38,6 +38,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category="ArticyObjectWithDisplayName")
 	virtual FText& SetDisplayName(UPARAM(ref) const FText& DisplayName)
 	{
-		return GetDisplayName() = DisplayName;
+		static const auto PropName = FName("DisplayName");
+		return GetProperty<FText>(PropName) = DisplayName;
 	}
 };

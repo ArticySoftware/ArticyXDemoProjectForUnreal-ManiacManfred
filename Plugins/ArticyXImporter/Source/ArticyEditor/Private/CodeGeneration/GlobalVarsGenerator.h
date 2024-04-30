@@ -6,6 +6,7 @@
 
 class UArticyImportData;
 struct FArticyGVInfo;
+class FString;
 
 /**
  * Generates the ArticyGlobalVariables struct from import data.

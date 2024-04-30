@@ -47,6 +47,7 @@ bool UArticyArchiveReader::ReadFile(const FString& Filename, FString& OutResult)
 
 		// TODO: Handle decompression
 		OutResult = ArchiveBytesToString(FileBytes, FileEntry.PackedLength);
+		delete FileHandle;
 	}
 	
 	return true;

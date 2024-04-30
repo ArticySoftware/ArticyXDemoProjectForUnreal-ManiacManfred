@@ -5,7 +5,7 @@
 #pragma once
 
 class UArticyImportData;
-
+class FString;
 
 /**
  * 

@@ -387,7 +387,7 @@ public:
 	
 	void PostImport();
 
-	void ImportFromJson(const UArticyArchiveReader& Archive, const TSharedPtr<FJsonObject> RootObject);
+	bool ImportFromJson(const UArticyArchiveReader& Archive, const TSharedPtr<FJsonObject> RootObject);
 
 	const static TWeakObjectPtr<UArticyImportData> GetImportData();
 	const FADISettings& GetSettings() const { return Settings; }
@@ -417,6 +417,9 @@ public:
 
 	void SetInitialImportComplete() { bHasCachedVersion = true; }
 	
+	UPROPERTY(VisibleAnywhere, Category = "ImportData")
+	FArticyLanguages Languages;
+
 protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Articy")
@@ -444,8 +447,6 @@ private:
 	FAIDUserMethods UserMethods;
 	UPROPERTY(VisibleAnywhere, Category="ImportData")
 	FADIHierarchy Hierarchy;
-	UPROPERTY(VisibleAnywhere, Category="ImportData")
-	FArticyLanguages Languages;
 
 	UPROPERTY(VisibleAnywhere, Category="ImportData")
 	TSet<FArticyExpressoFragment> ScriptFragments;
@@ -457,6 +458,6 @@ private:
 	TMap<FArticyId, FArticyIdArray> ParentChildrenCache;
 
 	void ImportAudioAssets(const FString& BaseContentDir, const FString& SubDir);
-	int ProcessStrings(StringTableGenerator* CsvOutput, const TPair<FString, FArticyLanguageDef>& Language);
+	int ProcessStrings(StringTableGenerator* CsvOutput, const TMap<FString, FArticyTexts>& Data, const TPair<FString, FArticyLanguageDef>& Language);
 };
 

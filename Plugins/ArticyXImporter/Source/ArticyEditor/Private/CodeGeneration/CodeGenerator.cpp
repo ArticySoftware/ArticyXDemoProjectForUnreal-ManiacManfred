@@ -18,6 +18,7 @@
 #include "ArticyEditorModule.h"
 #include "ArticyPluginSettings.h"
 #include "ArticyTypeGenerator.h"
+#include "ArticyLocalizerGenerator.h"
 #include "AssetToolsModule.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Misc/FileHelper.h"
@@ -86,6 +87,11 @@ FString CodeGenerator::GetFeatureInterfaceClassName(const UArticyImportData* Dat
 FString CodeGenerator::GetArticyTypeClassname(const UArticyImportData* Data, const bool bOmittPrefix)
 {
 	return (bOmittPrefix ? "" : "U") + Data->GetProject().TechnicalName + "TypeSystem";
+}
+
+FString CodeGenerator::GetArticyLocalizerClassname(const UArticyImportData* Data, const bool bOmittPrefix)
+{
+	return (bOmittPrefix ? "" : "U") + Data->GetProject().TechnicalName + "LocalizerSystem";
 }
 
 bool CodeGenerator::DeleteGeneratedCode(const FString& Filename)
@@ -202,6 +208,8 @@ bool CodeGenerator::GenerateCode(UArticyImportData* Data)
 		ExpressoScriptsGenerator::GenerateCode(Data, OutFile);
 		OutFiles.Add(OutFile);
 		ArticyTypeGenerator::GenerateCode(Data, OutFile);
+		OutFiles.Add(OutFile);
+		ArticyLocalizerGenerator::GenerateCode(Data, OutFile);
 		OutFiles.Add(OutFile);
 
 		bCodeGenerated = true;

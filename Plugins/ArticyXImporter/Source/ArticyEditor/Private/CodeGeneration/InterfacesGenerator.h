@@ -5,6 +5,7 @@
 #pragma once
 
 class UArticyImportData;
+class FString;
 
 class InterfacesGenerator
 {

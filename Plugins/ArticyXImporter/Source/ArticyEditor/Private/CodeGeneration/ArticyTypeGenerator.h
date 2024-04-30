@@ -6,6 +6,7 @@
 
 class UArticyImportData;
 struct FArticyType;
+class FString;
 
 /**
  * Generates the ArticyType struct from import data.

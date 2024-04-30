@@ -88,8 +88,12 @@ UArticyGlobalVariables* UArticyGlobalVariables::GetDefault(const UObject* WorldC
 {
 	if(!Clone.IsValid())
 	{
+#if ENGINE_MAJOR_VERSION >= 5
 		bool keepBetweenWorlds = UArticyPluginSettings::Get()->bKeepGlobalVariablesBetweenWorlds || WorldContext->GetWorld()->IsPartitionedWorld();
-
+#else
+		bool keepBetweenWorlds = UArticyPluginSettings::Get()->bKeepGlobalVariablesBetweenWorlds;
+#endif
+	
 		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 		TArray<FAssetData> AssetData;
 

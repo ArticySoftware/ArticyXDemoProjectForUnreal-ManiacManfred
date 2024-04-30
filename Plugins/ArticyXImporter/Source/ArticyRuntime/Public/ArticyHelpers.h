@@ -16,6 +16,7 @@
 #include "Dom/JsonObject.h"
 #include "ArticyTextExtension.h"
 #include "ArticyRuntimeModule.h"
+#include "ArticyLocalizerSystem.h"
 
 namespace ArticyHelpers
 {
@@ -121,8 +122,8 @@ namespace ArticyHelpers
 		double X = 0, Y = 0;
 
 		auto obj = Json->AsObject();
-		obj->TryGetNumberField("x", X);
-		obj->TryGetNumberField("y", Y);
+		obj->TryGetNumberField(TEXT("x"), X);
+		obj->TryGetNumberField(TEXT("y"), Y);
 
 		return FVector2D{ static_cast<float>(X), static_cast<float>(Y) };
 	}
@@ -160,54 +161,24 @@ namespace ArticyHelpers
 		double R, G, B, A = 1.0;
 
 		auto obj = Json->AsObject();
-		obj->TryGetNumberField("r", R);
-		obj->TryGetNumberField("g", G);
-		obj->TryGetNumberField("b", B);
-		obj->TryGetNumberField("a", A);
+		obj->TryGetNumberField(TEXT("r"), R);
+		obj->TryGetNumberField(TEXT("g"), G);
+		obj->TryGetNumberField(TEXT("b"), B);
+		obj->TryGetNumberField(TEXT("a"), A);
 
 		return FLinearColor{ static_cast<float>(R), static_cast<float>(G), static_cast<float>(B), static_cast<float>(A) };
 	}
 
 	inline FText ResolveText(UObject* Outer, const FText* SourceText)
 	{
-		return UArticyTextExtension::Get()->Resolve(Outer, SourceText);
+		UArticyLocalizerSystem* ArticyLocalizerSystem = UArticyLocalizerSystem::Get();
+		return ArticyLocalizerSystem->ResolveText(Outer, SourceText);
 	}
 
 	inline FText LocalizeString(UObject* Outer, const FText& Key, bool ResolveTextExtension = true, const FText* BackupText = nullptr)
 	{
-		const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
-
-		// Look up entry in specified string table
-		TOptional<FString> TableName = FTextInspector::GetNamespace(Key);
-		if (!TableName.IsSet())
-		{
-			TableName = TEXT("ARTICY");
-		}
-		const FText SourceString = FText::FromStringTable(
-			FName(TableName.GetValue()),
-			Key.ToString(),
-			EStringTableLoadingPolicy::FindOrFullyLoad);
-		const FString Decoded = SourceString.ToString();
-		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
-		{
-			if (ResolveTextExtension)
-			{
-				return ResolveText(Outer, &SourceString);
-			}
-			return SourceString;
-		}
-
-		if (BackupText)
-		{
-			return *BackupText;
-		}
-
-		// By default, return via the key
-		if (ResolveTextExtension)
-		{
-			return ResolveText(Outer, &Key);
-		}
-		return Key;
+		UArticyLocalizerSystem* ArticyLocalizerSystem = UArticyLocalizerSystem::Get();
+		return ArticyLocalizerSystem->LocalizeString(Outer, Key, ResolveTextExtension, BackupText);
 	}
 
 }

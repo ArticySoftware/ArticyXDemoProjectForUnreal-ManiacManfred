@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
-	"Version": 1,
-	"VersionName": "1.0.1",
+	"Version": 4,
+	"VersionName": "1.0.3",
 	"FriendlyName": "ArticyXImporter",
 	"Description": "Importer and interface for articy:draft X.",
 	"Category": "Articy",

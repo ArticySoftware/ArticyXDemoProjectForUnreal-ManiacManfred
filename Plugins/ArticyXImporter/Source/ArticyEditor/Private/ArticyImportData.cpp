@@ -491,11 +491,11 @@ void UArticyImportData::PostImport()
 	ArticyEditorModule.OnImportFinished.Broadcast();
 }
 
-void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, const TSharedPtr<FJsonObject> RootObject)
+bool UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, const TSharedPtr<FJsonObject> RootObject)
 {
 	// Abort if we will have broken packages
 	if (!PackageDefs.ValidateImport(Archive, &RootObject->GetArrayField(JSON_SECTION_PACKAGES)))
-		return;
+		return false;
 
 	// Record old script fragments hash
 	const FString& OldScriptFragmentsHash = Settings.ScriptFragmentsHash;
@@ -634,11 +634,12 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 	// Create string tables
 	if (!OldObjectDefintionsTextHash.Equals(Settings.ObjectDefinitionsTextHash))
 	{
+		const auto& ObjectDefsText = GetObjectDefs().GetTexts();
 		for (const auto& Language : Languages.Languages)
 		{
 			StringTableGenerator(TEXT("ARTICY"), Language.Key, [&](StringTableGenerator* CsvOutput)
 			{
-				return ProcessStrings(CsvOutput, Language);
+				return ProcessStrings(CsvOutput, ObjectDefsText, Language);
 			});
 		}
 	}
@@ -701,7 +702,7 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 			StringTableGenerator(StringTableFileName, Language.Key,
 				[&](StringTableGenerator* CsvOutput)
 			{
-				return ProcessStrings(CsvOutput, Language);
+				return ProcessStrings(CsvOutput, Package.GetTexts(), Language);
 			});
 		}
 	}
@@ -745,14 +746,16 @@ void UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 		CodeGenerator::GenerateAssets(this);
 		PostImport();
 	}
+
+	return true;
 }
 
-int UArticyImportData::ProcessStrings(StringTableGenerator* CsvOutput, const TPair<FString, FArticyLanguageDef>& Language)
+int UArticyImportData::ProcessStrings(StringTableGenerator* CsvOutput, const TMap<FString, FArticyTexts>& Data, const TPair<FString, FArticyLanguageDef>& Language)
 {
 	int Counter = 0;
 
 	// Handle object defs
-	for (const auto& Text : GetObjectDefs().GetTexts())
+	for (const auto& Text : Data)
 	{
 		// Send localized data or key, depending on whether data is available
 		if (Text.Value.Content.Num() > 0)
@@ -808,14 +811,22 @@ void UArticyImportData::ImportAudioAssets(const FString& BaseContentDir, const F
 		FString PackageFileName = FPaths::Combine(PackagePath, FileName + TEXT(".uasset"));
 
 		// Check if the asset already exists in the asset registry
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+		FAssetData AssetData = AssetRegistry.GetAssetByObjectPath(FSoftObjectPath(*PackageFileName));
+#else
 		FAssetData AssetData = AssetRegistry.GetAssetByObjectPath(FName(*PackageFileName));
-
+#endif
+		
 		if (AssetData.IsValid())
 		{
 			// Check the timestamp to determine if the asset needs updating
 			const FDateTime SourceTimeStamp = FileManager.GetTimeStamp(*FilePath);
 			IAssetRegistry* AssetRegistryPtr = &AssetRegistry;
-			FAssetData CurrentAssetData = AssetRegistryPtr->GetAssetByObjectPath(FName(*PackageFileName));
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1
+			FAssetData CurrentAssetData = AssetRegistry.GetAssetByObjectPath(FSoftObjectPath(*PackageFileName));
+#else
+			FAssetData CurrentAssetData = AssetRegistry.GetAssetByObjectPath(FName(*PackageFileName));
+#endif
 			UObject* Asset = CurrentAssetData.GetAsset();
 			if (Asset && Asset->GetOutermost())
 			{
