@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://www.articy.com/articy-importer/unity/media/ManiacManfred_Title.png">
+  <img src="https://www.articy.com/articy-importer/unity/adx/media/ManiacManfred_Title.png">
 </p>
 
 The "Maniac Manfred" demo project is a full articy:draft project we shipped with articy:draft and referenced it in our online help and in some of our product videos. In addition to our existing Unity Maniac Manfred demo project we decided to create an Unreal demo project too.  
@@ -38,4 +38,4 @@ Maniac Manfred was not build to win any prizes or awards. It lacks a lot of poli
 The best way to get started is to take a look into the `LevelHandler` Blueprint. Besides of the general game management of Maniac Manfred, you can see how to traverse through the flow in the form of dialogues with the ArticyFlowPlayer component, deal with articy objects and implement script methods created in articy.  
 Another instructive point of the project is the inventory system, which is split into the Blueprints `Inventory` and `InventoryItem`. Both show much about how to deal with global variables, features and templates.  
 Regarding the usage of articy conditions and instructions the `ClickableZone` and the `LevelImageElement` are the most interesting Blueprints.  
-If you want to learn more about the structure of the articy:draft project itself, you can take a look into [this](https://www.articy.com/articy-importer/unity/html/howto_maniacmanfred.htm) article about the Unity Maniac Manfred project.
+If you want to learn more about the structure of the articy:draft project itself, you can take a look into [this](https://www.articy.com/articy-importer/unity/adx/html/howto_maniacmanfred.htm) article about the Unity Maniac Manfred project.
