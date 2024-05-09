@@ -1,3 +1,8 @@
+## Unreal Importer 1.1.0 Changelog : 
+
+- New Features
+	- Support for Unreal Engine 5.4
+
 ## Unreal Importer 1.0.3 Changelog : 
 
 - Changes:
