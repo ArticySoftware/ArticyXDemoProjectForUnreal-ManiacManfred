@@ -13,7 +13,7 @@ void ObjectDefinitionsGenerator::GenerateCode(const UArticyImportData* Data, FSt
 	CodeFileGenerator(OutFile + ".h", true, [&](CodeFileGenerator* header)
 	{
 		header->Line("#include \"CoreUObject.h\"");
-		header->Line("#include \"ArticyRuntime/Public/ArticyBaseInclude.h\"");
+		header->Line("#include \"ArticyBaseInclude.h\"");
 		header->Line("#include \"" + CodeGenerator::GetGeneratedInterfacesFilename(Data) + ".h\"");
 		header->Line("#include \"" + CodeGenerator::GetGeneratedTypesFilename(Data) + ".generated.h\"");
 		header->Line();

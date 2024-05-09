@@ -19,7 +19,7 @@ void ArticyTypeGenerator::GenerateCode(const UArticyImportData* Data, FString& O
 	CodeFileGenerator(OutFile + ".h", true, [&](CodeFileGenerator* header)
 	{
 		header->Line("#include \"CoreUObject.h\"");
-		header->Line("#include \"ArticyRuntime/Public/ArticyTypeSystem.h\"");
+		header->Line("#include \"ArticyTypeSystem.h\"");
 		header->Line("#include \"" + OutFile + ".generated.h\"");
 
 		header->Line();

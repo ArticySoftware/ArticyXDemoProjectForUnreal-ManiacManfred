@@ -26,7 +26,7 @@ void ArticyLocalizerGenerator::GenerateCode(const UArticyImportData* Data, FStri
 	CodeFileGenerator(OutFile + ".h", true, [&](CodeFileGenerator* header)
 	{
 		header->Line("#include \"CoreUObject.h\"");
-		header->Line("#include \"ArticyRuntime/Public/ArticyLocalizerSystem.h\"");
+		header->Line("#include \"ArticyLocalizerSystem.h\"");
 		header->Line("#include \"" + OutFile + ".generated.h\"");
 
 		header->Line();

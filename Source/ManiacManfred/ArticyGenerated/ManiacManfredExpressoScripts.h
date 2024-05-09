@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreUObject.h"
-#include "ArticyRuntime/Public/ArticyExpressoScripts.h"
+#include "ArticyExpressoScripts.h"
 #include "ManiacManfredGlobalVariables.h"
 #include "ManiacManfredExpressoScripts.generated.h"
 

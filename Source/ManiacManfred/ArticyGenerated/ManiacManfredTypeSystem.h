@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreUObject.h"
-#include "ArticyRuntime/Public/ArticyTypeSystem.h"
+#include "ArticyTypeSystem.h"
 #include "ManiacManfredTypeSystem.generated.h"
 
 /** Articy Type System */

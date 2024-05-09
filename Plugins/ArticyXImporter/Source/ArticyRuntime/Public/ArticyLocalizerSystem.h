@@ -10,6 +10,7 @@
 #include "Internationalization/StringTableRegistry.h"
 #include "UObject/UObjectIterator.h"
 #include "UObject/Package.h"
+#include "Internationalization/StringTableCore.h"
 #include "ArticyLocalizerSystem.generated.h"
 
 UCLASS(BlueprintType)
@@ -65,23 +66,37 @@ public:
 
 		const FText MissingEntry = FText::FromString("<MISSING STRING TABLE ENTRY>");
 
+		// Default to key
+		FText SourceString = Key;
+
 		// Look up entry in specified string table
 		TOptional<FString> TableName = FTextInspector::GetNamespace(Key);
 		if (!TableName.IsSet())
 		{
 			TableName = TEXT("ARTICY");
 		}
-		FText SourceString = FText::FromStringTable(
-			FName(TableName.GetValue()),
-			Key.ToString(),
-			EStringTableLoadingPolicy::Find);
-		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
+
+		// Find the table
+		FStringTableConstPtr TablePtr = FStringTableRegistry::Get().FindStringTable(FName(TableName.GetValue()));
+		if (TablePtr.IsValid())
+		{
+			// Find the entry
+			const FStringTable* Table = TablePtr.Get();
+			FStringTableEntryConstPtr EntryPtr = Table->FindEntry(FTextKey(Key.ToString()));
+			if (EntryPtr.IsValid())
+			{
+				const FStringTableEntry* TableEntry = EntryPtr.Get();
+				SourceString = FText::FromString(TableEntry->GetSourceString());
+			}
+		}
+
+		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry) && !SourceString.EqualTo(Key))
 		{
 			if (ResolveTextExtension)
 			{
 				return ResolveText(Outer, &SourceString);
 			}
-			return SourceString;
+			return FText(SourceString);
 		}
 
 		if (BackupText)

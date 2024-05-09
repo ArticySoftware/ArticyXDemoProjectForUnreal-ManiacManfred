@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreUObject.h"
-#include "ArticyRuntime/Public/ArticyLocalizerSystem.h"
+#include "ArticyLocalizerSystem.h"
 #include "ManiacManfredLocalizerSystem.generated.h"
 
 /** Articy Localizer System */

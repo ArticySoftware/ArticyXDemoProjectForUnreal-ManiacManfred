@@ -60,11 +60,25 @@ public:
 		{
 			TableName = TEXT("ARTICY");
 		}
-		const FText SourceString = FText::FromStringTable(
-			FName(TableName.GetValue()),
-			Key.ToString() + ".VOAsset",
-			EStringTableLoadingPolicy::FindOrFullyLoad);
-		const FString Decoded = SourceString.ToString();
+
+		// Find the table
+		FStringTableConstPtr TablePtr = FStringTableRegistry::Get().FindStringTable(FName(TableName.GetValue()));
+		if (!TablePtr.IsValid())
+		{
+			return nullptr;
+		}
+
+		// Find the entry
+		const FStringTable* Table = TablePtr.Get();
+		FStringTableEntryConstPtr EntryPtr = Table->FindEntry(FTextKey(Key.ToString() + ".VOAsset"));
+		if (!EntryPtr.IsValid())
+		{
+			return nullptr;
+		}
+
+		const FStringTableEntry* TableEntry = EntryPtr.Get();
+		FText SourceString = FText::FromString(TableEntry->GetSourceString());
+
 		if (!SourceString.IsEmpty() && !SourceString.EqualTo(MissingEntry))
 		{
 			AssetId = FArticyId{ ResolveText(WorldContext, &SourceString).ToString() };
