@@ -517,10 +517,16 @@ public:
 	float Age = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Voice Actor"))
 	FText VoiceActor = FText::GetEmpty();
+	UFUNCTION(BlueprintPure, meta=(DisplayName="Get Voice Actor (Localized)"))
+	FText GetVoiceActor() { return GetPropertyText(VoiceActor); }
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Background Story"))
 	FText BackgroundStory = FText::GetEmpty();
+	UFUNCTION(BlueprintPure, meta=(DisplayName="Get Background Story (Localized)"))
+	FText GetBackgroundStory() { return GetPropertyText(BackgroundStory); }
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Motivation"))
 	FText Motivation = FText::GetEmpty();
+	UFUNCTION(BlueprintPure, meta=(DisplayName="Get Motivation (Localized)"))
+	FText GetMotivation() { return GetPropertyText(Motivation); }
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Likes"))
 	TArray<FArticyId> Likes;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Dislikes"))
@@ -987,8 +993,12 @@ public:
 	FText DisplayName = FText::GetEmpty();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Filename"))
 	FText Filename = FText::GetEmpty();
+	UFUNCTION(BlueprintPure, meta=(DisplayName="Get Filename (Localized)"))
+	FText GetFilename() { return GetPropertyText(Filename); }
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="OriginalSource"))
 	FText OriginalSource = FText::GetEmpty();
+	UFUNCTION(BlueprintPure, meta=(DisplayName="Get Original Source (Localized)"))
+	FText GetOriginalSource() { return GetPropertyText(OriginalSource); }
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="PreviewImage"))
 	UArticyPreviewImage* PreviewImage = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(DisplayName="Color"))

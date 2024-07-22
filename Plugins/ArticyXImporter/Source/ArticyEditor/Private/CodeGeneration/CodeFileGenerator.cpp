@@ -49,7 +49,9 @@ void CodeFileGenerator::Variable(const FString& Type, const FString& Name, const
 		this->Comment(Comment);
 	
 	if(bUproperty)
+	{
 		this->UPropertyMacro(UpropertySpecifiers);
+	}
 
 	//type and name
 	auto str = Type + TEXT(" ") + Name;
@@ -58,6 +60,17 @@ void CodeFileGenerator::Variable(const FString& Type, const FString& Name, const
 		str += TEXT(" = ") + Value;
 	
 	Line(str, true);
+
+	if(bUproperty && Type.Equals(TEXT("FText")))
+	{
+		static TArray<FString> ReservedNames = { TEXT("Text"), TEXT("DisplayName"), TEXT("MenuText"), TEXT("CreatedBy"), TEXT("StageDirections")};
+
+		if(!ReservedNames.Contains(Name))
+		{
+			Line(TEXT("UFUNCTION(BlueprintPure, meta=(DisplayName=\"Get ") + SplitName(Name) + TEXT(" (Localized)\"))"));
+			Line(Type + TEXT(" Get") + Name + TEXT("() { return GetPropertyText(") + Name + "); }");
+		}
+	}
 }
 
 //---------------------------------------------------------------------------//
@@ -176,4 +189,20 @@ void CodeFileGenerator::WriteToFile() const
 	{
 		USourceControlHelpers::MarkFileForAdd(*Path);
 	}
+}
+
+FString CodeFileGenerator::SplitName(const FString& Name)
+{
+	FString Result;
+
+	for (int32 i = 0; i < Name.Len(); i++)
+	{
+		if (FChar::IsUpper(Name[i]) && i > 0)
+		{
+			Result.AppendChar(' ');
+		}
+		Result.AppendChar(Name[i]);
+	}
+
+	return Result;
 }

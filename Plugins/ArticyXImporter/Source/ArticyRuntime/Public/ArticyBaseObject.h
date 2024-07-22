@@ -49,6 +49,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Articy")
 	TMap<FArticyId, UArticyPrimitive*> Subobjects;
 
+	UFUNCTION(BlueprintPure)
+	FText GetPropertyText(const FText Property);
+
 private:
 	/** Initialized with false, changed to true by InitFromJson (and later by deserialization). */
 	UPROPERTY(VisibleAnywhere, Category = "Articy")

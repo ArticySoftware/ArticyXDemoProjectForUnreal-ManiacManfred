@@ -107,6 +107,9 @@ private:
 	
 	/** Write the content to file. */
 	void WriteToFile() const;
+
+	/** Splits a property name string for BP formatting */
+	FString SplitName(const FString& Name);
 };
 
 //---------------------------------------------------------------------------//

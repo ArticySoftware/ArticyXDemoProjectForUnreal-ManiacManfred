@@ -7,8 +7,8 @@ public class ManiacManfredEditorTarget : TargetRules
 	public ManiacManfredEditorTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Editor;
-		DefaultBuildSettings = BuildSettingsVersion.V4;
+		DefaultBuildSettings = BuildSettingsVersion.Latest;
 		ExtraModuleNames.AddRange( new string[] { "ManiacManfred" } );
-        IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_3;
+        IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_2;
     }
 }

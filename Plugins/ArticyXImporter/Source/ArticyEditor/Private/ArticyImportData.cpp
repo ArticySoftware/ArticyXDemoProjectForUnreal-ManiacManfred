@@ -480,7 +480,9 @@ void UArticyImportData::GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags)
 		                              FAssetRegistryTag::TT_Hidden));
 	}
 
+    PRAGMA_DISABLE_DEPRECATION_WARNINGS
 	Super::GetAssetRegistryTags(OutTags);
+    PRAGMA_ENABLE_DEPRECATION_WARNINGS
 }
 #endif
 

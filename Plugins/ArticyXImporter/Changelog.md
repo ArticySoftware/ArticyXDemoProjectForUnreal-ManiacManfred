@@ -1,3 +1,11 @@
+## Unreal Importer 1.1.1 Changelog :
+
+- Changes:
+	- Split definitions and declarations for ExpressoType structs 
+- Fixes:
+	- Handle cast issues in Unreal Engine 5.4
+	- Fix string field loading in import
+
 ## Unreal Importer 1.1.0 Changelog : 
 
 - New Features
