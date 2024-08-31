@@ -19,9 +19,14 @@
 
 #define LOCTEXT_NAMESPACE "ArticyRefProperty"
 
+/**
+ * Constructs the SArticyRefProperty widget with the specified arguments.
+ *
+ * @param InArgs The declaration data for constructing the widget.
+ */
 void SArticyRefProperty::Construct(const FArguments& InArgs)
 {
-	if(ArticyRefToDisplay.IsBound())
+	if (ArticyRefToDisplay.IsBound())
 	{
 		ensureMsgf(InArgs._OnArticyRefChanged.IsBound(), TEXT("Since the shown object is given externally per event, the handler also needs to handle updates."));
 	}
@@ -32,19 +37,26 @@ void SArticyRefProperty::Construct(const FArguments& InArgs)
 	this->bExactClass = InArgs._bExactClass;
 	this->bExactClassEditable = InArgs._bExactClassEditable;
 	this->bIsReadOnly = InArgs._bIsReadOnly;
-	
+
 	SetCursor(EMouseCursor::Hand);
-	
+
 	CreateInternalWidgets();
 
 	UpdateWidget();
 
 	this->ChildSlot
-	[
-		ArticyIdProperty.ToSharedRef()
-	];
+		[
+			ArticyIdProperty.ToSharedRef()
+		];
 }
 
+/**
+ * Updates the widget state on each tick.
+ *
+ * @param AllottedGeometry The geometry allocated for this widget.
+ * @param InCurrentTime The current time.
+ * @param InDeltaTime The time elapsed since the last tick.
+ */
 void SArticyRefProperty::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
 	const FArticyRef& CurrentRef = ArticyRefToDisplay.IsBound() || ArticyRefToDisplay.IsSet() ? ArticyRefToDisplay.Get() : FArticyRef();
@@ -54,6 +66,9 @@ void SArticyRefProperty::Tick(const FGeometry& AllottedGeometry, const double In
 	}
 }
 
+/**
+ * Creates the internal widgets used within the ArticyRefProperty.
+ */
 void SArticyRefProperty::CreateInternalWidgets()
 {
 	FUIAction CopyAction;
@@ -65,7 +80,7 @@ void SArticyRefProperty::CreateInternalWidgets()
 
 	ArticyIdExtender = MakeShared<FExtender>();
 	ArticyIdExtender->AddToolBarExtension("Base", EExtensionHook::After, nullptr, FToolBarExtensionDelegate::CreateSP(this, &SArticyRefProperty::CreateAdditionalRefWidgets));
-	
+
 	FOnArticyIdChanged OnArticyIdChanged = FOnArticyIdChanged::CreateSP(this, &SArticyRefProperty::OnArticyIdChanged);
 	TAttribute<FArticyId> ArticyIdToDisplay;
 	ArticyIdToDisplay.BindRaw(this, &SArticyRefProperty::GetArticyIdToDisplay);
@@ -82,149 +97,177 @@ void SArticyRefProperty::CreateInternalWidgets()
 		.PasteAction(PasteAction);
 }
 
-
-void SArticyRefProperty::OnArticyIdChanged(const FArticyId& ArticyId) 
+/**
+ * Handles changes to the Articy ID.
+ *
+ * @param ArticyId The new Articy ID value.
+ */
+void SArticyRefProperty::OnArticyIdChanged(const FArticyId& ArticyId)
 {
 	// kind of redundant
 	CachedArticyRef.SetId(ArticyId);
 	OnArticyRefChanged.ExecuteIfBound(CachedArticyRef);
 }
 
+/**
+ * Retrieves the Articy ID to be displayed.
+ *
+ * @return The Articy ID to display.
+ */
 FArticyId SArticyRefProperty::GetArticyIdToDisplay() const
 {
 	return ArticyRefToDisplay.Get().GetId();
 }
 
+/**
+ * Creates additional reference widgets for the toolbar.
+ *
+ * @param Builder The toolbar builder to add widgets to.
+ */
 void SArticyRefProperty::CreateAdditionalRefWidgets(FToolBarBuilder& Builder)
 {
 	TSharedRef<SHorizontalBox> AdditionalWidgetBox = SNew(SHorizontalBox)
 #if __cplusplus >= 202002L
-	.IsEnabled_Lambda([=, this]()
+		.IsEnabled_Lambda([=, this]()
 #else
-	.IsEnabled_Lambda([=]()
+			.IsEnabled_Lambda([=]()
 #endif
-	{
-		return !bIsReadOnly.Get();
-	})
-	+ SHorizontalBox::Slot()
-	.HAlign(HAlign_Center)
-	.VAlign(VAlign_Center)
-	.Padding(1.f, 3.f)
-	.AutoWidth()
-	[
-		SNew(STextBlock)
-		.Text(FText::FromString("Base"))
-		.TextStyle(&FArticyEditorStyle::Get().GetWidgetStyle<FTextBlockStyle>("ArticyImporter.SmallTextBlock"))
-		.ToolTipText(FText::FromString("Should this ArticyRef reference the base object or a clone?"))
-	]
-	+ SHorizontalBox::Slot()
-	.HAlign(HAlign_Center)
-	.VAlign(VAlign_Center)
-	.Padding(1.f, 3.f)
-	.AutoWidth()
-	[
-		SNew(SCheckBox)
+				{
+					return !bIsReadOnly.Get();
+				})
+			+ SHorizontalBox::Slot()
+					.HAlign(HAlign_Center)
+					.VAlign(VAlign_Center)
+					.Padding(1.f, 3.f)
+					.AutoWidth()
+					[
+						SNew(STextBlock)
+							.Text(FText::FromString("Base"))
+							.TextStyle(&FArticyEditorStyle::Get().GetWidgetStyle<FTextBlockStyle>("ArticyImporter.SmallTextBlock"))
+							.ToolTipText(FText::FromString("Should this ArticyRef reference the base object or a clone?"))
+					]
+					+ SHorizontalBox::Slot()
+					.HAlign(HAlign_Center)
+					.VAlign(VAlign_Center)
+					.Padding(1.f, 3.f)
+					.AutoWidth()
+					[
+						SNew(SCheckBox)
 #if __cplusplus >= 202002L
-		.IsChecked_Lambda([=, this]()
+							.IsChecked_Lambda([=, this]()
 #else
-		.IsChecked_Lambda([=]()
+								.IsChecked_Lambda([=]()
 #endif
-		{
-			return CachedArticyRef.bReferenceBaseObject ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
-		})
+									{
+										return CachedArticyRef.bReferenceBaseObject ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+									})
 #if __cplusplus >= 202002L
-		.OnCheckStateChanged_Lambda([=, this](ECheckBoxState NewState)
+								.OnCheckStateChanged_Lambda([=, this](ECheckBoxState NewState)
 #else
-		.OnCheckStateChanged_Lambda([=](ECheckBoxState NewState)
+									.OnCheckStateChanged_Lambda([=](ECheckBoxState NewState)
 #endif
-		{
-			CachedArticyRef.bReferenceBaseObject = NewState == ECheckBoxState::Checked;
-			OnArticyRefChanged.ExecuteIfBound(CachedArticyRef);
-		})
-	]
-	+ SHorizontalBox::Slot()
-	.HAlign(HAlign_Center)
-	.VAlign(VAlign_Center)
-	.FillWidth(1.f)
-	[
-		SNew(SSpacer)
-	]
-	+ SHorizontalBox::Slot()
-	.HAlign(HAlign_Center)
-	.VAlign(VAlign_Center)
-	.Padding(1.f, 3.f)
-	.AutoWidth()
-	[
-		SNew(STextBlock)
-		.Text(FText::FromString("Clone"))
-		.TextStyle(&FArticyEditorStyle::Get().GetWidgetStyle<FTextBlockStyle>("ArticyImporter.SmallTextBlock"))
-		.ToolTipText(FText::FromString("Which clone Id should be referenced?"))
+										{
+											CachedArticyRef.bReferenceBaseObject = NewState == ECheckBoxState::Checked;
+											OnArticyRefChanged.ExecuteIfBound(CachedArticyRef);
+										})
+					]
+									+ SHorizontalBox::Slot()
+									.HAlign(HAlign_Center)
+									.VAlign(VAlign_Center)
+									.FillWidth(1.f)
+									[
+										SNew(SSpacer)
+									]
+									+ SHorizontalBox::Slot()
+									.HAlign(HAlign_Center)
+									.VAlign(VAlign_Center)
+									.Padding(1.f, 3.f)
+									.AutoWidth()
+									[
+										SNew(STextBlock)
+											.Text(FText::FromString("Clone"))
+											.TextStyle(&FArticyEditorStyle::Get().GetWidgetStyle<FTextBlockStyle>("ArticyImporter.SmallTextBlock"))
+											.ToolTipText(FText::FromString("Which clone Id should be referenced?"))
 #if __cplusplus >= 202002L
-		.Visibility_Lambda([=, this]()
+											.Visibility_Lambda([=, this]()
 #else
-		.Visibility_Lambda([=]()
+												.Visibility_Lambda([=]()
 #endif
-		{
-			return CachedArticyRef.bReferenceBaseObject ? EVisibility::Collapsed : EVisibility::Visible;
-		})
-	]
-	+ SHorizontalBox::Slot()
-	.HAlign(HAlign_Center)
-	.VAlign(VAlign_Center)
-	.Padding(1.f, 0.f)
-	.AutoWidth()
-	[
-		SNew(SNumericEntryBox<int32>)
-		.MinDesiredValueWidth(15.f)
+													{
+														return CachedArticyRef.bReferenceBaseObject ? EVisibility::Collapsed : EVisibility::Visible;
+													})
+									]
+												+ SHorizontalBox::Slot()
+												.HAlign(HAlign_Center)
+												.VAlign(VAlign_Center)
+												.Padding(1.f, 0.f)
+												.AutoWidth()
+												[
+													SNew(SNumericEntryBox<int32>)
+														.MinDesiredValueWidth(15.f)
 #if __cplusplus >= 202002L
-		.Value_Lambda([=, this]()
+														.Value_Lambda([=, this]()
 #else
-		.Value_Lambda([=]()
+															.Value_Lambda([=]()
 #endif
-		{
-			return CachedArticyRef.CloneId;
-		})
+																{
+																	return CachedArticyRef.CloneId;
+																})
 #if __cplusplus >= 202002L
-		.OnValueChanged_Lambda([=, this](int32 NewValue)
+															.OnValueChanged_Lambda([=, this](int32 NewValue)
 #else
-		.OnValueChanged_Lambda([=](int32 NewValue)
+																.OnValueChanged_Lambda([=](int32 NewValue)
 #endif
-		{
-			CachedArticyRef.CloneId = NewValue;
-			OnArticyRefChanged.ExecuteIfBound(CachedArticyRef);
-		})
+																	{
+																		CachedArticyRef.CloneId = NewValue;
+																		OnArticyRefChanged.ExecuteIfBound(CachedArticyRef);
+																	})
 #if __cplusplus >= 202002L
-		.Visibility_Lambda([=, this]()
+																.Visibility_Lambda([=, this]()
 #else
-		.Visibility_Lambda([=]()
+																	.Visibility_Lambda([=]()
 #endif
-		{
-			return CachedArticyRef.bReferenceBaseObject ? EVisibility::Collapsed : EVisibility::Visible;
-		})
-	];
-	
-	Builder.AddWidget(AdditionalWidgetBox);
+																		{
+																			return CachedArticyRef.bReferenceBaseObject ? EVisibility::Collapsed : EVisibility::Visible;
+																		})
+												];
+
+				Builder.AddWidget(AdditionalWidgetBox);
 }
 
+/**
+ * Updates the ArticyRef with a new reference.
+ *
+ * @param NewRef The new ArticyRef to update.
+ */
 void SArticyRefProperty::Update(const FArticyRef& NewRef)
 {
 	CachedArticyRef = NewRef;
 	CachedArticyObject = !CachedArticyRef.GetId().IsNull() ? UArticyObject::FindAsset(CachedArticyRef.GetId()) : nullptr;
-	
+
 	UpdateWidget();
 }
 
+/**
+ * Updates the widget display and customizations.
+ */
 void SArticyRefProperty::UpdateWidget()
 {
 	// not yet done
 }
 
+/**
+ * Copies the property value to the clipboard.
+ */
 void SArticyRefProperty::OnCopyProperty() const
 {
 	FString ValueString = CachedArticyRef.ToString();
 	FPlatformApplicationMisc::ClipboardCopy(*ValueString);
 }
 
+/**
+ * Pastes the property value from the clipboard.
+ */
 void SArticyRefProperty::OnPasteProperty()
 {
 	FString ClipboardContent;
@@ -240,6 +283,11 @@ void SArticyRefProperty::OnPasteProperty()
 	}
 }
 
+/**
+ * Determines whether the property can be pasted.
+ *
+ * @return true if the property can be pasted, false otherwise.
+ */
 bool SArticyRefProperty::CanPasteProperty() const
 {
 	if (bIsReadOnly.Get())
@@ -256,17 +304,17 @@ bool SArticyRefProperty::CanPasteProperty() const
 	}
 
 	FArticyId CandidateId;
-	if(CandidateId.InitFromString(ClipboardContent))
+	if (CandidateId.InitFromString(ClipboardContent))
 	{
 		UArticyObject* Object = UArticyObject::FindAsset(CandidateId);
-		if(!Object)
+		if (!Object)
 		{
 			return false;
 		}
 
 		return Object->UObject::GetClass()->IsChildOf(TopLevelClassRestriction.Get());
 	}
-	
+
 	return false;
 }
 #undef LOCTEXT_NAMESPACE

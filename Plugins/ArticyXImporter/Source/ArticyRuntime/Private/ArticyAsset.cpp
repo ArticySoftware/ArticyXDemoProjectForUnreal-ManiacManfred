@@ -6,6 +6,11 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Misc/Paths.h"
 
+/**
+ * Loads the asset referenced by this Articy asset.
+ *
+ * @return A pointer to the loaded UObject, or nullptr if the asset could not be loaded.
+ */
 UObject* UArticyAsset::LoadAsset() const
 {
 	//if(!Asset.IsValid())
@@ -33,30 +38,48 @@ UObject* UArticyAsset::LoadAsset() const
 #else
 		Asset = ConstructorHelpersInternal::FindOrLoadObject<UObject>(path, LOAD_None);
 #endif
-		
+
 	}
 
 	return Asset.Get();
 }
 
+/**
+ * Loads the asset as a texture.
+ *
+ * @return A pointer to the loaded UTexture, or nullptr if the asset could not be loaded as a texture.
+ */
 UTexture* UArticyAsset::LoadAsTexture() const
 {
 	return Cast<UTexture>(LoadAsset());
 }
 
+/**
+ * Loads the asset as a 2D texture.
+ *
+ * @return A pointer to the loaded UTexture2D, or nullptr if the asset could not be loaded as a 2D texture.
+ */
 UTexture2D* UArticyAsset::LoadAsTexture2D() const
 {
 	return Cast<UTexture2D>(LoadAsset());
 }
 
+/**
+ * Loads the asset as a sound wave.
+ *
+ * @return A pointer to the loaded USoundWave, or nullptr if the asset could not be loaded as a sound wave.
+ */
 USoundWave* UArticyAsset::LoadAsSoundWave() const
 {
 	return Cast<USoundWave>(LoadAsset());
 }
 
+/**
+ * Loads the asset as a file media source.
+ *
+ * @return A pointer to the loaded UFileMediaSource, or nullptr if the asset could not be loaded as a file media source.
+ */
 UFileMediaSource* UArticyAsset::LoadAsFileMediaSource() const
 {
 	return Cast<UFileMediaSource>(LoadAsset());
 }
-
-

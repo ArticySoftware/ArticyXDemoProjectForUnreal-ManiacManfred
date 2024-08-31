@@ -7,9 +7,16 @@
 
 #define LOCTEXT_NAMESPACE "PackagesGenerator"
 
+/**
+ * @brief Generates package assets for Articy import data.
+ *
+ * This function creates new Articy package objects based on the definitions in the import data.
+ *
+ * @param Data The import data used for asset generation.
+ */
 void PackagesGenerator::GenerateAssets(UArticyImportData* Data)
 {
-	// generate new articy objects
+	// Generate new Articy objects
 	const auto ArticyPackageDefs = Data->GetPackageDefs();
 	ArticyPackageDefs.GenerateAssets(Data);
 }

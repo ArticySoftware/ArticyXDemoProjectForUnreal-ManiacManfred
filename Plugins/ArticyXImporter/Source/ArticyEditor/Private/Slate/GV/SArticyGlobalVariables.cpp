@@ -28,36 +28,36 @@ void SArticyVariableSet::Construct(const FArguments& Args, TWeakObjectPtr<UArtic
 	VariableSet = InVariableSet;
 
 	ensure(VariableSet.IsValid());
-	
+
 	SizeData = Args._SizeData;
 
 	VariableContainer = SNew(SVerticalBox);
 
 	NamespaceExpansion = SNew(SExpandableArea)
-	.InitiallyCollapsed(Args._bInitiallyCollapsed)
-	.BorderBackgroundColor(FLinearColor(0.7f, 0.7f, 0.7f))
-	.HeaderContent()
-	[
-		SNew(SHorizontalBox)
-		+ SHorizontalBox::Slot()
-		.FillWidth(1.f)
+		.InitiallyCollapsed(Args._bInitiallyCollapsed)
+		.BorderBackgroundColor(FLinearColor(0.7f, 0.7f, 0.7f))
+		.HeaderContent()
 		[
-			SNew(STextBlock)
-			.Text(FText::FromString(VariableSet->GetName()))
-			.TextStyle(FArticyEditorStyle::Get(), TEXT("ArticyImporter.GlobalVariables.Namespace"))
+			SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.FillWidth(1.f)
+				[
+					SNew(STextBlock)
+						.Text(FText::FromString(VariableSet->GetName()))
+						.TextStyle(FArticyEditorStyle::Get(), TEXT("ArticyImporter.GlobalVariables.Namespace"))
+				]
 		]
-	]
-	.BodyContent()
-	[
-		VariableContainer.ToSharedRef()
-	];
+		.BodyContent()
+		[
+			VariableContainer.ToSharedRef()
+		];
 
 	BuildVariableWidgets();
 
 	ChildSlot
-	[
-		NamespaceExpansion.ToSharedRef()
-	];
+		[
+			NamespaceExpansion.ToSharedRef()
+		];
 }
 
 void SArticyVariableSet::SetExpanded(bool bInExpanded) const
@@ -79,24 +79,24 @@ void SArticyVariableSet::BuildVariableWidgets()
 
 	TArray<UArticyVariable*> SortedVars = VariableSet->Variables;
 	SortedVars.Sort([](const UArticyVariable& LHS, const UArticyVariable& RHS)
-	{
-		return LHS.GetName().Compare(RHS.GetName(), ESearchCase::IgnoreCase) < 0 ? true : false;
-	});
-	
+		{
+			return LHS.GetName().Compare(RHS.GetName(), ESearchCase::IgnoreCase) < 0 ? true : false;
+		});
+
 	for (UArticyVariable* Var : SortedVars)
 	{
 		TSharedRef<SSplitter> LocalSplitter = SNew(SSplitter);
 
 		// left variable slot
 		LocalSplitter->AddSlot()
-		.Value(SizeData->LeftColumnWidth)
-		.OnSlotResized(SizeData->OnWidthChanged)
-		[
-			SNew(STextBlock).Text_Lambda([Var]()
-			{
-				return FText::FromString(Var->GetName());
-			})
-		];
+			.Value(SizeData->LeftColumnWidth)
+			.OnSlotResized(SizeData->OnWidthChanged)
+			[
+				SNew(STextBlock).Text_Lambda([Var]()
+					{
+						return FText::FromString(Var->GetName());
+					})
+			];
 
 		// right variable slot
 		SplitterSlotType RightVariableSlot = LocalSplitter->AddSlot();
@@ -108,124 +108,124 @@ void SArticyVariableSet::BuildVariableWidgets()
 		InnerVarSlot.AutoWidth();
 
 		RightVariableSlot
-		[
-			SNew(SBox)
-			.MinDesiredWidth(150.f)
-			.MaxDesiredWidth(300.f)
 			[
-				ConstrainBox
-			]
-		];
+				SNew(SBox)
+					.MinDesiredWidth(150.f)
+					.MaxDesiredWidth(300.f)
+					[
+						ConstrainBox
+					]
+			];
 
 		if (Var->GetClass() == UArticyString::StaticClass())
 		{
 			UArticyString* StringVar = Cast<UArticyString>(Var);
 			InnerVarSlot
-			[
-				SNew(SEditableTextBox)
-				.MinDesiredWidth(30.f)
-				.Text_Lambda([StringVar]()
-				{
-					return FText::FromString(StringVar->Get());
-				})
-				.OnTextCommitted_Lambda([StringVar](const FText& Text, ETextCommit::Type CommitType)
-				{
-					if(StringVar->Get().Equals(Text.ToString()))
-					{
-						return;
-					}
+				[
+					SNew(SEditableTextBox)
+						.MinDesiredWidth(30.f)
+						.Text_Lambda([StringVar]()
+							{
+								return FText::FromString(StringVar->Get());
+							})
+						.OnTextCommitted_Lambda([StringVar](const FText& Text, ETextCommit::Type CommitType)
+							{
+								if (StringVar->Get().Equals(Text.ToString()))
+								{
+									return;
+								}
 
-					const FScopedTransaction Transaction(LOCTEXT("ModifyGV", "Modified GV"));
-					StringVar->Modify();
-					*StringVar = Text.ToString();
-				})
-			];
+								const FScopedTransaction Transaction(LOCTEXT("ModifyGV", "Modified GV"));
+								StringVar->Modify();
+								*StringVar = Text.ToString();
+							})
+				];
 		}
 		else if (Var->GetClass() == UArticyInt::StaticClass())
 		{
 			UArticyInt* IntVar = Cast<UArticyInt>(Var);
 			InnerVarSlot
-			[
-				SNew(SNumericEntryBox<int32>)
-				.AllowSpin(true)
-				.MaxSliderValue(TOptional<int32>())
-				.MinSliderValue(TOptional<int32>())
-				.MinDesiredValueWidth(80.f)
+				[
+					SNew(SNumericEntryBox<int32>)
+						.AllowSpin(true)
+						.MaxSliderValue(TOptional<int32>())
+						.MinSliderValue(TOptional<int32>())
+						.MinDesiredValueWidth(80.f)
 #if __cplusplus >= 202002L
-				.OnBeginSliderMovement_Lambda([=, this]()
+						.OnBeginSliderMovement_Lambda([=, this]()
 #else
-				.OnBeginSliderMovement_Lambda([=]()
+							.OnBeginSliderMovement_Lambda([=]()
 #endif
-				{
-					bSliderMoving = true;
-					GEditor->BeginTransaction(TEXT("Articy GV"), FText::FromString(TEXT("Modify Articy GV by Slider")), IntVar);
-				})
+								{
+									bSliderMoving = true;
+									GEditor->BeginTransaction(TEXT("Articy GV"), FText::FromString(TEXT("Modify Articy GV by Slider")), IntVar);
+								})
 #if __cplusplus >= 202002L
-				.OnEndSliderMovement_Lambda([=, this](int32 Value)
+							.OnEndSliderMovement_Lambda([=, this](int32 Value)
 #else
-				.OnEndSliderMovement_Lambda([=](int32 Value)
+								.OnEndSliderMovement_Lambda([=](int32 Value)
 #endif
-				{
-					bSliderMoving = false;
-					IntVar->Modify();
-					*IntVar = Value;
-					GEditor->EndTransaction();
-				})
-				.Value_Lambda([IntVar]()
-				{
-					return IntVar->Get();
-				})
-				// on value changed is only used for slider value updates
-				.OnValueChanged(this, &SArticyVariableSet::OnValueChanged, IntVar)
+									{
+										bSliderMoving = false;
+										IntVar->Modify();
+										*IntVar = Value;
+										GEditor->EndTransaction();
+									})
+								.Value_Lambda([IntVar]()
+									{
+										return IntVar->Get();
+									})
+										// on value changed is only used for slider value updates
+										.OnValueChanged(this, &SArticyVariableSet::OnValueChanged, IntVar)
 #if __cplusplus >= 202002L
-				.OnValueCommitted_Lambda([=, this](int32 Value, ETextCommit::Type Type)
+										.OnValueCommitted_Lambda([=, this](int32 Value, ETextCommit::Type Type)
 #else
-				.OnValueCommitted_Lambda([=](int32 Value, ETextCommit::Type Type)
+											.OnValueCommitted_Lambda([=](int32 Value, ETextCommit::Type Type)
 #endif
-				{
-					if (bSliderMoving || Value == IntVar->Get())
-					{
-						return;
-					}
+												{
+													if (bSliderMoving || Value == IntVar->Get())
+													{
+														return;
+													}
 
-					const FScopedTransaction Transaction(LOCTEXT("ModifyGV", "Modified GV"));
-					IntVar->Modify();
-					*IntVar = Value;
-				})
-			];
+													const FScopedTransaction Transaction(LOCTEXT("ModifyGV", "Modified GV"));
+													IntVar->Modify();
+													*IntVar = Value;
+												})
+				];
 		}
 		else if (Var->GetClass() == UArticyBool::StaticClass())
 		{
 			UArticyBool* BoolVar = Cast<UArticyBool>(Var);
 			InnerVarSlot
-			[
-				SNew(SCheckBox)
-				.IsChecked_Lambda([BoolVar]()
-				{
-					return BoolVar->Get() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
-				})
-				.OnCheckStateChanged_Lambda([BoolVar](const ECheckBoxState& State)
-				{
-					if(*BoolVar == (State == ECheckBoxState::Checked))
-					{
-						return;
-					}
-					
-					const FScopedTransaction Transaction(TEXT("ArticyGV"),LOCTEXT("ModifyGV", "Modified GV"), BoolVar);
-					bool bSavedInTranactionBuffer = BoolVar->Modify();
-					*BoolVar = State == ECheckBoxState::Checked;
-				})
-			];
+				[
+					SNew(SCheckBox)
+						.IsChecked_Lambda([BoolVar]()
+							{
+								return BoolVar->Get() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+							})
+						.OnCheckStateChanged_Lambda([BoolVar](const ECheckBoxState& State)
+							{
+								if (*BoolVar == (State == ECheckBoxState::Checked))
+								{
+									return;
+								}
+
+								const FScopedTransaction Transaction(TEXT("ArticyGV"), LOCTEXT("ModifyGV", "Modified GV"), BoolVar);
+								bool bSavedInTranactionBuffer = BoolVar->Modify();
+								*BoolVar = State == ECheckBoxState::Checked;
+							})
+				];
 		}
 
 		VariableWidgetMapping.Add(Var, LocalSplitter);
 
 		VariableContainer->AddSlot()
-		.AutoHeight()
-		.Padding(25.f, 5.f, 5.f, 5.f)
-		[
-			LocalSplitter
-		];
+			.AutoHeight()
+			.Padding(25.f, 5.f, 5.f, 5.f)
+			[
+				LocalSplitter
+			];
 	}
 
 	bVariableWidgetsBuilt = true;
@@ -233,7 +233,7 @@ void SArticyVariableSet::BuildVariableWidgets()
 
 void SArticyVariableSet::UpdateVisibility(const UArticyVariable* Variable, EVisibility InVisibility)
 {
-	if(VariableWidgetMapping.Contains(Variable))
+	if (VariableWidgetMapping.Contains(Variable))
 	{
 		TWeakPtr<SWidget> VarWidget = VariableWidgetMapping[Variable];
 		VarWidget.Pin()->SetVisibility(InVisibility);
@@ -248,7 +248,7 @@ TArray<UArticyVariable*> SArticyVariableSet::GetVariables()
 void SArticyGlobalVariables::Construct(const FArguments& Args, TWeakObjectPtr<UArticyGlobalVariables> GV)
 {
 	VariableFilter = MakeShareable(new FFrontendFilter_ArticyVariable);
-	
+
 	FrontendFilters = MakeShareable(new FArticyVariableFilterCollectionType);
 	FrontendFilters->OnChanged().AddSP(this, &SArticyGlobalVariables::OnFrontendFiltersChanged);
 	GlobalVariables = GV;
@@ -258,21 +258,21 @@ void SArticyGlobalVariables::Construct(const FArguments& Args, TWeakObjectPtr<UA
 	SizeData.OnWidthChanged = SSplitter::FOnSlotResized::CreateSP(this, &SArticyGlobalVariables::OnSetColumnWidth);
 
 	bInitiallyCollapsed = Args._bInitiallyCollapsed;
-	
+
 	TSharedRef<SVerticalBox> ParentWidget = SNew(SVerticalBox);
 	SetContainer = SNew(SVerticalBox);
 
 	TSharedRef<SScrollBox> ScrollBox = SNew(SScrollBox).ScrollBarAlwaysVisible(true)
-	+ SScrollBox::Slot()
-	[
-		SetContainer.ToSharedRef()
-	];
+		+ SScrollBox::Slot()
+		[
+			SetContainer.ToSharedRef()
+		];
 
-	if(GlobalVariables.IsValid())
+	if (GlobalVariables.IsValid())
 	{
 		UpdateDisplayedGlobalVariables(GlobalVariables);
 	}
-	
+
 	TSharedRef<SSearchBox> SearchBox = SNew(SSearchBox)
 		.OnTextChanged(this, &SArticyGlobalVariables::OnSearchBoxChanged)
 		.OnTextCommitted(this, &SArticyGlobalVariables::OnSearchBoxCommitted)
@@ -282,9 +282,9 @@ void SArticyGlobalVariables::Construct(const FArguments& Args, TWeakObjectPtr<UA
 	ParentWidget->AddSlot().FillHeight(1.f)[ScrollBox];
 
 	ChildSlot
-	[
-		ParentWidget
-	];
+		[
+			ParentWidget
+		];
 
 	//FrontendFilters->Add(VariableFilter);
 }
@@ -294,29 +294,29 @@ void SArticyGlobalVariables::UpdateDisplayedGlobalVariables(TWeakObjectPtr<UArti
 	VariableSetWidgets.Empty();
 	SetContainer->ClearChildren();
 
-	if(!InGV.IsValid())
+	if (!InGV.IsValid())
 	{
 		return;
 	}
-	
+
 	TArray<UArticyBaseVariableSet*> SortedSets = InGV->GetVariableSets();
 	SortedSets.Sort([](const UArticyBaseVariableSet& LHS, const UArticyBaseVariableSet& RHS)
-	{
-		return LHS.GetName().Compare(RHS.GetName(), ESearchCase::IgnoreCase) < 0 ? true : false;
-	});
+		{
+			return LHS.GetName().Compare(RHS.GetName(), ESearchCase::IgnoreCase) < 0 ? true : false;
+		});
 
 	for (UArticyBaseVariableSet* Set : SortedSets)
 	{
 		TSharedRef<SArticyVariableSet> VarSetWidget = SNew(SArticyVariableSet, Set)
-		.bInitiallyCollapsed(bInitiallyCollapsed)
-		.SizeData(&SizeData);
+			.bInitiallyCollapsed(bInitiallyCollapsed)
+			.SizeData(&SizeData);
 
 		VariableSetWidgets.Add(VarSetWidget);
 
 		SetContainer->AddSlot().AutoHeight()
-		[
-			VarSetWidget
-		];
+			[
+				VarSetWidget
+			];
 	}
 
 	// retrigger the currently active filters
@@ -346,7 +346,7 @@ void SArticyGlobalVariables::SetSearchBoxText(const FText& InSearchText)
 			FrontendFilters->Remove(VariableFilter);
 			RestoreExpansionStates();
 		}
-		else if(!InSearchText.IsEmpty() && FrontendFilters->Num() == 0)
+		else if (!InSearchText.IsEmpty() && FrontendFilters->Num() == 0)
 		{
 			CacheExpansionStates();
 			FrontendFilters->Add(VariableFilter);
@@ -356,7 +356,7 @@ void SArticyGlobalVariables::SetSearchBoxText(const FText& InSearchText)
 
 void SArticyGlobalVariables::OnFrontendFiltersChanged()
 {
-	if(FrontendFilters->Num() > 0)
+	if (FrontendFilters->Num() > 0)
 	{
 		bShouldForceExpand = true;
 	}
@@ -364,16 +364,16 @@ void SArticyGlobalVariables::OnFrontendFiltersChanged()
 	{
 		bShouldForceExpand = false;
 	}
-	
-	for(TSharedPtr<SArticyVariableSet> SetWidget : VariableSetWidgets)
+
+	for (TSharedPtr<SArticyVariableSet> SetWidget : VariableSetWidgets)
 	{
 		uint32 NumVisible = 0;
 		TArray<UArticyVariable*> Vars = SetWidget->GetVariables();
 
-		for(UArticyVariable* Var : Vars)
+		for (UArticyVariable* Var : Vars)
 		{
 			const UArticyVariable* VarTmp = Var;
-			if(TestAgainstFrontendFilters(Var))
+			if (TestAgainstFrontendFilters(Var))
 			{
 				SetWidget->UpdateVisibility(VarTmp, EVisibility::Visible);
 				NumVisible++;
@@ -384,13 +384,13 @@ void SArticyGlobalVariables::OnFrontendFiltersChanged()
 			}
 		}
 
-		if(NumVisible > 0)
+		if (NumVisible > 0)
 		{
-			if(bShouldForceExpand)
+			if (bShouldForceExpand)
 			{
 				SetWidget->SetExpanded(true);
 			}
-			
+
 			SetWidget->SetVisibility(EVisibility::Visible);
 		}
 		else
@@ -412,7 +412,7 @@ bool SArticyGlobalVariables::TestAgainstFrontendFilters(const UArticyVariable* I
 
 void SArticyGlobalVariables::CacheExpansionStates()
 {
-	for(TSharedPtr<SArticyVariableSet>& SetWidget : VariableSetWidgets)
+	for (TSharedPtr<SArticyVariableSet>& SetWidget : VariableSetWidgets)
 	{
 		ExpansionCache.Add(SetWidget, SetWidget->IsExpanded());
 	}

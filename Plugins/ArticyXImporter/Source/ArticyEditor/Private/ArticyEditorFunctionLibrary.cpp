@@ -12,6 +12,13 @@
 #include "HAL/FileManager.h"
 #include "Misc/Paths.h"
 
+/**
+ * Forces a complete reimport of the Articy data.
+ * Resets all hashes and package definitions, ensuring that all changes are reimported.
+ *
+ * @param ImportData The Articy import data object to reimport.
+ * @return The number of changes reimported, or -1 if the operation failed.
+ */
 int32 FArticyEditorFunctionLibrary::ForceCompleteReimport(UArticyImportData* ImportData)
 {
 	const EImportDataEnsureResult Result = EnsureImportDataAsset(&ImportData);
@@ -33,6 +40,12 @@ int32 FArticyEditorFunctionLibrary::ForceCompleteReimport(UArticyImportData* Imp
 	return ReimportChanges(ImportData);
 }
 
+/**
+ * Reimports changes from the Articy data without resetting all data.
+ *
+ * @param ImportData The Articy import data object to reimport.
+ * @return The number of changes reimported, or -1 if the operation failed.
+ */
 int32 FArticyEditorFunctionLibrary::ReimportChanges(UArticyImportData* ImportData)
 {
 	const EImportDataEnsureResult Result = EnsureImportDataAsset(&ImportData);
@@ -56,6 +69,12 @@ int32 FArticyEditorFunctionLibrary::ReimportChanges(UArticyImportData* ImportDat
 	return -1;
 }
 
+/**
+ * Regenerates assets from the given Articy import data.
+ *
+ * @param ImportData The Articy import data object from which assets are regenerated.
+ * @return -1 if the operation failed.
+ */
 int32 FArticyEditorFunctionLibrary::RegenerateAssets(UArticyImportData* ImportData)
 {
 	const EImportDataEnsureResult Result = EnsureImportDataAsset(&ImportData);
@@ -74,11 +93,18 @@ int32 FArticyEditorFunctionLibrary::RegenerateAssets(UArticyImportData* ImportDa
 	return -1;
 }
 
+/**
+ * Ensures that the Articy import data asset is valid and available.
+ * Generates a new import data asset if necessary.
+ *
+ * @param ImportData A pointer to a pointer of the Articy import data object.
+ * @return The result of the ensure operation.
+ */
 EImportDataEnsureResult FArticyEditorFunctionLibrary::EnsureImportDataAsset(UArticyImportData** ImportData)
 {
 	EImportDataEnsureResult Result;
 
-	if(*ImportData)
+	if (*ImportData)
 	{
 		Result = Success;
 	}
@@ -91,7 +117,7 @@ EImportDataEnsureResult FArticyEditorFunctionLibrary::EnsureImportDataAsset(UArt
 			UE_LOG(LogArticyEditor, Warning, TEXT("Attempting to create from .articyue export file"));
 			ImportDataAsset = GenerateImportDataAsset();
 
-			if(ImportDataAsset.IsValid())
+			if (ImportDataAsset.IsValid())
 			{
 				*ImportData = ImportDataAsset.Get();
 				Result = Generation;
@@ -99,7 +125,7 @@ EImportDataEnsureResult FArticyEditorFunctionLibrary::EnsureImportDataAsset(UArt
 			else
 			{
 				Result = Failure;
-			}			
+			}
 		}
 		else
 		{
@@ -111,10 +137,16 @@ EImportDataEnsureResult FArticyEditorFunctionLibrary::EnsureImportDataAsset(UArt
 	return Result;
 }
 
+/**
+ * Generates a new Articy import data asset.
+ * Searches for an existing .articyue file in the specified directory and imports it.
+ *
+ * @return A pointer to the generated Articy import data asset, or nullptr if the operation failed.
+ */
 UArticyImportData* FArticyEditorFunctionLibrary::GenerateImportDataAsset()
 {
 	UArticyImportData* ImportData = nullptr;
-	
+
 	UArticyJSONFactory* Factory = NewObject<UArticyJSONFactory>();
 
 	TArray<FString> ArticyImportFiles;
@@ -132,7 +164,7 @@ UArticyImportData* FArticyEditorFunctionLibrary::GenerateImportDataAsset()
 		UE_LOG(LogArticyEditor, Error, TEXT("Failed creation of import data asset. No .articyue file found in directory %s. Please check the plugin settings for the correct articy directory and try again."), *ArticyDirectory);
 		return nullptr;
 	}
-	
+
 	const FString FileName = FPaths::GetBaseFilename(ArticyImportFiles[0], false);
 
 	const FString PackagePath = ArticyDirectory + TEXT("/") + FileName;
@@ -168,6 +200,6 @@ UArticyImportData* FArticyEditorFunctionLibrary::GenerateImportDataAsset()
 		ObjectTools::ForceDeleteObjects({ Outer });
 		UE_LOG(LogArticyEditor, Error, TEXT("Failed creation import data asset. Aborting process."));
 	}
-	
+
 	return ImportData;
 }

@@ -9,12 +9,30 @@
 #include "Slate/GV/SArticyGlobalVariablesDebugger.h"
 #include "DetailLayoutBuilder.h"
 
-/** This class is not really actively used, as we use the GVEditor to overwrite the asset editor completely, and the GV runtime debugger.
- *	We use it just in case someone externally summons a details tab. There will be a useless default seach bar and a custom one using the details panel. */
+/**
+ * @class FArticyGVCustomization
+ * @brief Customizes the details panel for Articy Global Variables.
+ *
+ * This class provides customization for the details panel of ArticyGlobalVariables objects, hiding the default categories and replacing them with a custom UI.
+ */
 class FArticyGVCustomization : public IDetailCustomization
 {
 public:
+	/**
+	 * @brief Creates an instance of the ArticyGVCustomization.
+	 *
+	 * This function creates and returns a shared pointer to a new instance of the ArticyGVCustomization class.
+	 *
+	 * @return A shared pointer to a new instance of the ArticyGVCustomization class.
+	 */
 	static TSharedRef<IDetailCustomization> MakeInstance();
 
+	/**
+	 * @brief Customizes the details panel for Articy Global Variables.
+	 *
+	 * This function customizes the details panel for a single ArticyGlobalVariables object, hiding the default categories and displaying a custom UI.
+	 *
+	 * @param DetailBuilder The detail layout builder used to customize the details panel.
+	 */
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 };

@@ -6,6 +6,10 @@
 
 #define LOCTEXT_NAMESPACE "FArticyImporterModule"
 
+/**
+ * Registers the commands used by the Articy Editor plugin.
+ * This method is called to define and bind the commands to the actions they perform.
+ */
 void FArticyEditorCommands::RegisterCommands()
 {
 	// FInputChord can be modified for default shortcuts, but they don't seem to work inside the level editor by default

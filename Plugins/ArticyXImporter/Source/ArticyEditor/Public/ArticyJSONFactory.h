@@ -10,35 +10,95 @@
 #include "ArticyJSONFactory.generated.h"
 
 class UArticyImportData;
+
 /**
- * 
+ * Factory for importing JSON files exported from Articy:draft.
  */
 UCLASS()
 class UArticyJSONFactory : public UFactory, public FReimportHandler
 {
-	GENERATED_BODY()
-
-	UArticyJSONFactory();
-	virtual ~UArticyJSONFactory();
+    GENERATED_BODY()
 
 public:
-	bool FactoryCanImport(const FString& Filename) override;
-	UClass* ResolveSupportedClass() override;
-	UObject* FactoryCreateFile(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, const FString& Filename, const TCHAR* Parms, FFeedbackContext* Warn, bool& bOutOperationCanceled) override;
+    /** Constructor for UArticyJSONFactory. */
+    UArticyJSONFactory();
 
-	//FReimportHandler
-	// gets called upon pressing "Import"
-	bool CanReimport(UObject* Obj, TArray<FString>& OutFilenames) override;
-	void SetReimportPaths(UObject* Obj, const TArray<FString>& NewReimportPaths) override;
-	EReimportResult::Type Reimport(UObject* Obj) override;
-	//~FReimportHandler
+    /** Destructor for UArticyJSONFactory. */
+    virtual ~UArticyJSONFactory();
+
+    /**
+     * Determines if the factory can import the specified file.
+     *
+     * @param Filename The name of the file to check.
+     * @return true if the factory can import the file, false otherwise.
+     */
+    bool FactoryCanImport(const FString& Filename) override;
+
+    /**
+     * Resolves the class supported by this factory.
+     *
+     * @return The class supported by this factory.
+     */
+    UClass* ResolveSupportedClass() override;
+
+    /**
+     * Creates an object from the specified file.
+     *
+     * @param InClass The class to create.
+     * @param InParent The parent object.
+     * @param InName The name of the object.
+     * @param Flags Object flags.
+     * @param Filename The name of the file to import.
+     * @param Parms Additional parameters.
+     * @param Warn Feedback context for warnings and errors.
+     * @param bOutOperationCanceled Output flag indicating if the operation was canceled.
+     * @return The created object.
+     */
+    UObject* FactoryCreateFile(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, const FString& Filename, const TCHAR* Parms, FFeedbackContext* Warn, bool& bOutOperationCanceled) override;
+
+    // FReimportHandler
+
+    /**
+     * Determines if the factory can reimport the specified object.
+     *
+     * @param Obj The object to reimport.
+     * @param OutFilenames The list of filenames for reimporting.
+     * @return true if the factory can reimport the object, false otherwise.
+     */
+    bool CanReimport(UObject* Obj, TArray<FString>& OutFilenames) override;
+
+    /**
+     * Sets the reimport paths for the specified object.
+     *
+     * @param Obj The object to set reimport paths for.
+     * @param NewReimportPaths The new reimport paths.
+     */
+    void SetReimportPaths(UObject* Obj, const TArray<FString>& NewReimportPaths) override;
+
+    /**
+     * Reimports the specified object.
+     *
+     * @param Obj The object to reimport.
+     * @return The result of the reimport operation.
+     */
+    EReimportResult::Type Reimport(UObject* Obj) override;
+    //~FReimportHandler
 
 private:
-	/** Performs the actual import task, converting the json data into UArticyImportData. */
-	bool ImportFromFile(const FString& FileName, UArticyImportData* Asset) const;
+    /**
+     * Performs the actual import task, converting the JSON data into UArticyImportData.
+     *
+     * @param FileName The name of the file to import.
+     * @param Asset The Articy import data object to import into.
+     * @return true if the import was successful, false otherwise.
+     */
+    bool ImportFromFile(const FString& FileName, UArticyImportData* Asset) const;
 
-	/** If an import or reimport is performed during play, the process is interrupted; upon exiting play a factory is created which then triggers the reimport 
-	 * a reimport even in case of the first import works since the ImportDataAsset gets created even during play, which then just needs a reimport to get initialized */
-	bool HandleImportDuringPlay(UObject* Obj);
-
+    /**
+     * Handles the case where an import or reimport is performed during play.
+     *
+     * @param Obj The object to import or reimport.
+     * @return true if the import is queued for later, false otherwise.
+     */
+    bool HandleImportDuringPlay(UObject* Obj);
 };

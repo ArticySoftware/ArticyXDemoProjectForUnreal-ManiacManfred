@@ -20,7 +20,7 @@ UArticyPluginSettings::UArticyPluginSettings()
 	bConvertUnityToUnrealRichText = false;
 	bVerifyArticyReferenceBeforeImport = true;
 	bUseLegacyImporter = false;
-	
+
 	bSortChildrenAtGeneration = false;
 	ArticyDirectory.Path = TEXT("/Game");
 	// update package load settings after all files have been loaded
@@ -53,7 +53,7 @@ void UArticyPluginSettings::UpdatePackageSettings()
 	{
 		return;
 	}
-	
+
 	TArray<FString> ImportedPackageNames = ArticyDatabase->GetImportedPackageNames();
 
 	// remove outdated settings
@@ -63,7 +63,7 @@ void UArticyPluginSettings::UpdatePackageSettings()
 	for (FString Name : CurrentNames)
 	{
 		// if the old name isn't contained in the new packages, remove its loading rule
-		if(!ImportedPackageNames.Contains(Name))
+		if (!ImportedPackageNames.Contains(Name))
 		{
 			PackageLoadSettings.Remove(Name);
 		}
@@ -87,11 +87,12 @@ void UArticyPluginSettings::ApplyPreviousSettings() const
 	// restore the package default settings with the cached data of the plugin settings
 	TWeakObjectPtr<UArticyDatabase> OriginalDatabase = UArticyDatabase::GetMutableOriginal();
 
-	for(FString PackageName : OriginalDatabase->GetImportedPackageNames())
+	for (FString PackageName : OriginalDatabase->GetImportedPackageNames())
 	{
 		OriginalDatabase->ChangePackageDefault(FName(*PackageName), GetDefault<UArticyPluginSettings>()->PackageLoadSettings[PackageName]);
 	}
 }
+
 #if WITH_EDITOR
 void UArticyPluginSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {

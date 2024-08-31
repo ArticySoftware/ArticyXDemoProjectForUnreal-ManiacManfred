@@ -12,16 +12,33 @@
 #include "ArticyGlobalVariables.h"
 #include "Slate/GV/SArticyGlobalVariables.h"
 
+/**
+ * @class FArticyGVEditor
+ * @brief Editor class for managing and editing Articy Global Variables.
+ *
+ * This class provides an editor interface for editing Articy Global Variables within Unreal Engine.
+ */
 class FArticyGVEditor : public FAssetEditorToolkit, FEditorUndoClient, FNotifyHook, FGCObject
 {
 public:
+	/** Destructor for FArticyGVEditor. */
 	virtual ~FArticyGVEditor();
+
+	/**
+	 * @brief Initializes the Articy Global Variables editor.
+	 *
+	 * @param Mode The toolkit mode (standalone or world-centric).
+	 * @param InitToolkitHost The toolkit host for integration.
+	 * @param ObjectToEdit The ArticyGlobalVariables object to be edited.
+	 */
 	void InitArticyGVEditor(const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost, UArticyGlobalVariables* ObjectToEdit);
 
 	/** FGCObject Interface */
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
+
 	/** IToolkit Interface */
 	virtual FLinearColor GetWorldCentricTabColorScale() const override;
+
 	/** FAssetEditorToolkit Interface */
 	virtual FName GetToolkitFName() const override;
 	virtual FText GetBaseToolkitName() const override;
@@ -30,9 +47,21 @@ public:
 	virtual FString GetReferencerName() const override;
 
 private:
+	/**
+	 * @brief Spawns the Articy Global Variables tab.
+	 *
+	 * @param Args The arguments for spawning the tab.
+	 * @return A shared reference to the created SDockTab.
+	 */
 	TSharedRef<SDockTab> SpawnTab_ArticyGV(const FSpawnTabArgs& Args) const;
+
 private:
+	/** The ArticyGlobalVariables object being edited. */
 	TWeakObjectPtr<UArticyGlobalVariables> GlobalVariables;
+
+	/** Widget for displaying and interacting with global variables. */
 	TSharedPtr<SArticyGlobalVariables> GlobalVariablesWidget;
+
+	/** The name identifier for the Articy Global Variables tab. */
 	static const FName ArticyGVTab;
 };

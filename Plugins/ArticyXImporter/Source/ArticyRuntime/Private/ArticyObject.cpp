@@ -19,15 +19,20 @@ TMap<FArticyId, TWeakObjectPtr<UArticyObject>> UArticyObject::ArticyIdCache;
 TMap<FName, TWeakObjectPtr<UArticyObject>> UArticyObject::ArticyNameCache;
 #endif
 
+/**
+ * Initializes the UArticyObject from a JSON value.
+ *
+ * @param Json The JSON value to initialize from. Must be a JSON object.
+ */
 void UArticyObject::InitFromJson(TSharedPtr<FJsonValue> Json)
 {
 	Super::InitFromJson(Json);
 
-	if(!Json.IsValid() || Json->Type != EJson::Object)
+	if (!Json.IsValid() || Json->Type != EJson::Object)
 		return;
 
 	auto obj = Json->AsObject();
-	if(!ensure(obj.IsValid()))
+	if (!ensure(obj.IsValid()))
 		return;
 
 	JSON_TRY_HEX_ID(obj, Parent);
@@ -36,18 +41,33 @@ void UArticyObject::InitFromJson(TSharedPtr<FJsonValue> Json)
 
 //---------------------------------------------------------------------------//
 
+/**
+ * Gets the technical name of the Articy object.
+ *
+ * @return The technical name of the object.
+ */
 FName UArticyObject::GetTechnicalName() const
 {
 	return *TechnicalName;
 }
 
+/**
+ * Gets the parent Articy object.
+ *
+ * @return Pointer to the parent Articy object, or nullptr if not found.
+ */
 UArticyObject* UArticyObject::GetParent() const
 {
 	return UArticyDatabase::Get(this)->GetObject<UArticyObject>(Parent);
 }
 
+/**
+ * Gets the children of this Articy object.
+ *
+ * @return An array of weak pointers to the child Articy objects.
+ */
 TArray<TWeakObjectPtr<UArticyObject>> UArticyObject::GetChildren() const
-{	
+{
 	if (CachedChildren.Num() != Children.Num())
 	{
 		auto db = UArticyDatabase::Get(this);
@@ -61,24 +81,40 @@ TArray<TWeakObjectPtr<UArticyObject>> UArticyObject::GetChildren() const
 	return CachedChildren;
 }
 
+/**
+ * Gets the ID of the parent Articy object.
+ *
+ * @return The ID of the parent Articy object.
+ */
 FArticyId UArticyObject::GetParentID() const
 {
 	return Parent;
 }
 
+/**
+ * Gets the IDs of the children Articy objects.
+ *
+ * @return An array of IDs for the children Articy objects.
+ */
 TArray<FArticyId> UArticyObject::GetChildrenIDs() const
 {
 	return Children;
 }
 
 #if WITH_EDITOR
+
+/**
+ * Gets the IDs of all children Articy objects that map to actual articy objects (excluding pins, etc.).
+ *
+ * @return An array of IDs for the articy object children.
+ */
 TArray<FArticyId> UArticyObject::GetArticyObjectChildrenIDs() const
 {
 	TArray<FArticyId> OutIDs;
 
-	for(auto ChildID : Children)
+	for (auto ChildID : Children)
 	{
-		if(const UArticyObject* Object = UArticyObject::FindAsset(ChildID))
+		if (const UArticyObject* Object = UArticyObject::FindAsset(ChildID))
 		{
 			OutIDs.Add(Object->GetId());
 		}
@@ -87,42 +123,48 @@ TArray<FArticyId> UArticyObject::GetArticyObjectChildrenIDs() const
 	return OutIDs;
 }
 
+/**
+ * Finds an Articy object by its ID. Caches and refreshes packages if necessary.
+ *
+ * @param Id The ID of the Articy object to find.
+ * @return Pointer to the Articy object if found, or nullptr if not found.
+ */
 UArticyObject* UArticyObject::FindAsset(const FArticyId& Id)
 {
-	if(ArticyIdCache.Contains(Id) && ArticyIdCache[Id].IsValid())
+	if (ArticyIdCache.Contains(Id) && ArticyIdCache[Id].IsValid())
 	{
 		return ArticyIdCache[Id].Get();
 	}
 
 	bool bRefreshPackages = false;
-	
-	if(CachedPackages.Num() >= 1)
+
+	if (CachedPackages.Num() >= 1)
 	{
-		for(auto& Package : CachedPackages)
+		for (auto& Package : CachedPackages)
 		{
 			bRefreshPackages = !Package.IsValid();
 
-			if(bRefreshPackages)
+			if (bRefreshPackages)
 			{
 				break;
 			}
 		}
 	}
-	else if(CachedPackages.Num() == 0)
+	else if (CachedPackages.Num() == 0)
 	{
 		bRefreshPackages = true;
 	}
 
 	// refresh packages if needed 
-	if(bRefreshPackages)
+	if (bRefreshPackages)
 	{
 		CachedPackages.Empty();
-		
+
 		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(AssetRegistryConstants::ModuleName);
 		TArray<FAssetData> AssetData;
 
 #if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >0
-		AssetRegistryModule.Get().GetAssetsByClass( UArticyPackage::StaticClass()->GetClassPathName() , AssetData, true);
+		AssetRegistryModule.Get().GetAssetsByClass(UArticyPackage::StaticClass()->GetClassPathName(), AssetData, true);
 #else
 		AssetRegistryModule.Get().GetAssetsByClass(UArticyPackage::StaticClass()->GetFName(), AssetData, true);
 #endif
@@ -153,7 +195,7 @@ UArticyObject* UArticyObject::FindAsset(const FArticyId& Id)
 	}
 
 	// if the object wasn't found in any package but exists in the object map, remove it
-	if(ArticyIdCache.Contains(Id))
+	if (ArticyIdCache.Contains(Id))
 	{
 		ArticyIdCache.Remove(Id);
 	}
@@ -161,6 +203,12 @@ UArticyObject* UArticyObject::FindAsset(const FArticyId& Id)
 	return nullptr;
 }
 
+/**
+ * Finds an Articy object by its technical name. Caches and refreshes packages if necessary.
+ *
+ * @param TechnicalName The technical name of the Articy object to find.
+ * @return Pointer to the Articy object if found, or nullptr if not found.
+ */
 UArticyObject* UArticyObject::FindAsset(const FString& TechnicalName)// MM_CHANGE
 {
 	const FName Name(*TechnicalName);
@@ -168,7 +216,7 @@ UArticyObject* UArticyObject::FindAsset(const FString& TechnicalName)// MM_CHANG
 	{
 		return ArticyNameCache[Name].Get();
 	}
-	
+
 	bool bRefreshPackages = false;
 
 	if (CachedPackages.Num() >= 1)
@@ -197,7 +245,7 @@ UArticyObject* UArticyObject::FindAsset(const FString& TechnicalName)// MM_CHANG
 		TArray<FAssetData> AssetData;
 
 #if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >0
-		AssetRegistryModule.Get().GetAssetsByClass(UArticyPackage::StaticClass()->GetClassPathName() , AssetData, true);
+		AssetRegistryModule.Get().GetAssetsByClass(UArticyPackage::StaticClass()->GetClassPathName(), AssetData, true);
 #else
 		AssetRegistryModule.Get().GetAssetsByClass(UArticyPackage::StaticClass()->GetFName(), AssetData, true);
 #endif
@@ -211,7 +259,7 @@ UArticyObject* UArticyObject::FindAsset(const FString& TechnicalName)// MM_CHANG
 			}
 		}
 	}
-	
+
 	for (TWeakObjectPtr<UArticyPackage> ArticyPackage : CachedPackages)
 	{
 		if (ArticyPackage.IsValid())

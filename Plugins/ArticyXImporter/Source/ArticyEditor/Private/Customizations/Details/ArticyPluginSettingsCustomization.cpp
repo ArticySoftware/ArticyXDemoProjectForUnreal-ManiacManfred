@@ -18,11 +18,19 @@
 
 #define LOCTEXT_NAMESPACE "ArticyPluginSettings"
 
+/**
+ * @brief Default constructor for FArticyPluginSettingsCustomization.
+ */
 FArticyPluginSettingsCustomization::FArticyPluginSettingsCustomization()
 {
 
 }
 
+/**
+ * @brief Destructor for FArticyPluginSettingsCustomization.
+ *
+ * Removes the refresh handle from the ArticyEditorModule's assets generated event.
+ */
 FArticyPluginSettingsCustomization::~FArticyPluginSettingsCustomization()
 {
 	// closing the settings window means we no longer want to refresh the UI
@@ -30,11 +38,23 @@ FArticyPluginSettingsCustomization::~FArticyPluginSettingsCustomization()
 	ArticyEditorModule.OnAssetsGenerated.Remove(RefreshHandle);
 }
 
+/**
+ * @brief Creates a shared instance of FArticyPluginSettingsCustomization.
+ *
+ * @return A shared pointer to a new instance of FArticyPluginSettingsCustomization.
+ */
 TSharedRef<IDetailCustomization> FArticyPluginSettingsCustomization::MakeInstance()
 {
 	return MakeShareable(new FArticyPluginSettingsCustomization);
 }
 
+/**
+ * @brief Customizes the details panel layout for Articy plugin settings.
+ *
+ * This function sets up the custom UI for managing Articy package settings.
+ *
+ * @param DetailLayout The detail layout builder used for customizing the details panel.
+ */
 void FArticyPluginSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 {
 	LayoutBuilder = &DetailLayout;
@@ -44,28 +64,28 @@ void FArticyPluginSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& 
 	RefreshHandle = ArticyImporterModule.OnAssetsGenerated.AddRaw(this, &FArticyPluginSettingsCustomization::RefreshSettingsUI);
 
 	TWeakObjectPtr<const UArticyDatabase> OriginalDatabase = UArticyDatabase::GetMutableOriginal();
-	
+
 	if (!OriginalDatabase.IsValid()) {
 
 		// if there was no database found, check if we are still loading assets; if we are, refresh the custom UI once it's done
 		FAssetRegistryModule& AssetRegistry = FModuleManager::Get().GetModuleChecked<FAssetRegistryModule>("AssetRegistry");
 
-		if (AssetRegistry.Get().IsLoadingAssets()) 
+		if (AssetRegistry.Get().IsLoadingAssets())
 		{
 			AssetRegistry.Get().OnFilesLoaded().AddSP(this, &FArticyPluginSettingsCustomization::RefreshSettingsUI);
 		}
-		
+
 		return;
 	}
-	IDetailCategoryBuilder& DefaultPackagesCategory= DetailLayout.EditCategory("Default packages");
+	IDetailCategoryBuilder& DefaultPackagesCategory = DetailLayout.EditCategory("Default packages");
 
 	TArray<TSharedPtr<SPackageSettings>> PackageSettingsWidgets;
 
 	// create a custom widget per package
-	for(FString PackageName : OriginalDatabase->GetImportedPackageNames())
+	for (FString PackageName : OriginalDatabase->GetImportedPackageNames())
 	{
 		const FName PackageNameAsName = FName(*PackageName);
-		TSharedPtr<SPackageSettings> NewSettingsWidget = 
+		TSharedPtr<SPackageSettings> NewSettingsWidget =
 			SNew(SPackageSettings)
 			.PackageToDisplay(PackageNameAsName);
 
@@ -76,16 +96,21 @@ void FArticyPluginSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& 
 	for (TSharedPtr<SPackageSettings> PackageSettingsWidget : PackageSettingsWidgets)
 	{
 		DefaultPackagesCategory.AddCustomRow(LOCTEXT("PackageSetting", ""))
-		[
-			PackageSettingsWidget.ToSharedRef()
-		];
+			[
+				PackageSettingsWidget.ToSharedRef()
+			];
 	}
 }
 
+/**
+ * @brief Refreshes the settings UI by forcing a refresh of the detail layout.
+ *
+ * This function is called after assets are generated or files are loaded to update the UI.
+ */
 void FArticyPluginSettingsCustomization::RefreshSettingsUI()
 {
 	ensure(LayoutBuilder);
-	
+
 	LayoutBuilder->ForceRefreshDetails();
 	// the refresh will cause a new instance to be created and used, therefore clear the outdated refresh delegate handle
 	FArticyEditorModule& ArticyImporterModule = FModuleManager::Get().GetModuleChecked<FArticyEditorModule>("ArticyEditor");

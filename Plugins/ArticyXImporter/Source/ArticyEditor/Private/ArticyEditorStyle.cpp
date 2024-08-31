@@ -12,8 +12,12 @@
 #include "Runtime/Launch/Resources/Version.h"
 #include "Framework/Application/SlateApplication.h"
 
+// A shared pointer to the Slate style set instance.
 TSharedPtr< FSlateStyleSet > FArticyEditorStyle::StyleInstance = NULL;
 
+/**
+ * Initialize the ArticyEditorStyle, creating and registering the Slate style set if it is not already valid.
+ */
 void FArticyEditorStyle::Initialize()
 {
 	if (!StyleInstance.IsValid())
@@ -23,6 +27,9 @@ void FArticyEditorStyle::Initialize()
 	}
 }
 
+/**
+ * Shutdown the ArticyEditorStyle, unregistering the Slate style set and resetting the instance.
+ */
 void FArticyEditorStyle::Shutdown()
 {
 	FSlateStyleRegistry::UnRegisterSlateStyle(*StyleInstance);
@@ -30,12 +37,18 @@ void FArticyEditorStyle::Shutdown()
 	StyleInstance.Reset();
 }
 
+/**
+ * Get the name of the Slate style set.
+ *
+ * @return The name of the style set.
+ */
 FName FArticyEditorStyle::GetStyleSetName()
 {
 	static FName StyleSetName(TEXT("ArticyEditorStyle"));
 	return StyleSetName;
 }
 
+// Macros to simplify creating brushes and fonts for the style set.
 #define IMAGE_BRUSH( RelativePath, ... ) FSlateImageBrush( Style->RootToContentDir( RelativePath, TEXT(".png") ), __VA_ARGS__ )
 #define BOX_BRUSH( RelativePath, ... ) FSlateBoxBrush( Style->RootToContentDir( RelativePath, TEXT(".png") ), __VA_ARGS__ )
 #define BORDER_BRUSH( RelativePath, ... ) FSlateBorderBrush( Style->RootToContentDir( RelativePath, TEXT(".png") ), __VA_ARGS__ )
@@ -43,6 +56,7 @@ FName FArticyEditorStyle::GetStyleSetName()
 #define OTF_FONT( RelativePath, ... ) FSlateFontInfo( Style->RootToContentDir( RelativePath, TEXT(".otf") ), __VA_ARGS__ )
 #define DEFAULT_FONT(...) FCoreStyle::GetDefaultFontStyle(__VA_ARGS__)
 
+// Standard icon sizes for UI elements.
 const FVector2D Icon8x8(8.0f, 8.0f);
 const FVector2D Icon16x16(16.0f, 16.0f);
 const FVector2D Icon20x20(20.0f, 20.0f);
@@ -51,6 +65,11 @@ const FVector2D Icon40x40(40.0f, 40.0f);
 const FVector2D Icon64x64(64.0f, 64.0f);
 const FVector2D Icon96x96(96.0f, 96.0f);
 
+/**
+ * Create the Slate style set for the ArticyEditor, defining brushes, fonts, and styles for UI elements.
+ *
+ * @return The created style set.
+ */
 TSharedRef< FSlateStyleSet > FArticyEditorStyle::Create()
 {
 	TSharedRef< FSlateStyleSet > Style = MakeShareable(new FSlateStyleSet("ArticyEditorStyle"));
@@ -61,7 +80,7 @@ TSharedRef< FSlateStyleSet > FArticyEditorStyle::Create()
 #else
 	const FTextBlockStyle NormalText = FEditorStyle::GetWidgetStyle<FTextBlockStyle>("NormalText");
 #endif
-	
+
 	FTextBlockStyle NameText = FTextBlockStyle(NormalText)
 		.SetColorAndOpacity(FLinearColor(0.9f, 0.9f, 0.9f));
 	{
@@ -75,14 +94,12 @@ TSharedRef< FSlateStyleSet > FArticyEditorStyle::Create()
 	{
 		Style->Set("ArticyImporter.SmallTextBlock", SmallTextBlockStyle);
 	}
-	// the default icon for a command has to have the name "Plugin.CommandName"
-	//Style->Set("ArticyImporter.OpenArticyImporter", new IMAGE_BRUSH(TEXT("ButtonIcon_40x"), Icon40x40));
 
 	Style->Set("ArticyImporter.ArticyDraftLogoText", new IMAGE_BRUSH(TEXT("ArticyDraftLogoText"), FVector2D(291, 54)));
 	Style->Set("ArticyImporter.ArticyDraft.8", new IMAGE_BRUSH(TEXT("ArticyDraft16"), Icon8x8));
 	Style->Set("ArticyImporter.ArticyDraft.16", new IMAGE_BRUSH(TEXT("ArticyDraft16"), Icon16x16));
 	Style->Set("ArticyImporter.ArticyDraft.32", new IMAGE_BRUSH(TEXT("ArticyDraft32"), Icon32x32));
-	
+
 	Style->Set("ArticyImporter.ArticySoftware.16", new IMAGE_BRUSH(TEXT("ArticySoftware16"), Icon16x16));
 	Style->Set("ArticyImporter.ArticySoftware.32", new IMAGE_BRUSH(TEXT("ArticySoftware32"), Icon32x32));
 	Style->Set("ArticyImporter.ArticySoftware.40", new IMAGE_BRUSH(TEXT("ArticySoftware40"), Icon40x40));
@@ -97,7 +114,7 @@ TSharedRef< FSlateStyleSet > FArticyEditorStyle::Create()
 	Style->Set("ArticyImporter.Window.ImporterLogo", new IMAGE_BRUSH(TEXT("ArticyWindow/Logo_ArticyDraftImporter_TopMiddle"), FVector2D(404, 125)));
 	Style->Set("ArticyImporter.Window.ArticyLogo", new IMAGE_BRUSH(TEXT("ArticyWindow/Logo_Articy_BottomRightCropped"), FVector2D(170, 57)));
 
-
+	// Define button styles for various actions in the Articy editor.
 	FButtonStyle FullReimportButtonStyle = FButtonStyle()
 		.SetNormal(IMAGE_BRUSH("ArticyWindow/Button_FullReimport", FVector2D(333, 101)))
 		.SetHovered(IMAGE_BRUSH("ArticyWindow/Button_FullReimport_Hover", FVector2D(333, 101)))
@@ -112,14 +129,15 @@ TSharedRef< FSlateStyleSet > FArticyEditorStyle::Create()
 		.SetNormal(IMAGE_BRUSH("ArticyWindow/Button_RegenerateAssets", FVector2D(333, 101)))
 		.SetHovered(IMAGE_BRUSH("ArticyWindow/Button_RegenerateAssets_Hover", FVector2D(333, 101)))
 		.SetPressed(IMAGE_BRUSH("ArticyWindow/Button_RegenerateAssets_Press", FVector2D(333, 101)));
-	
+
 	Style->Set("ArticyImporter.Button.FullReimport", FullReimportButtonStyle);
 	Style->Set("ArticyImporter.Button.ImportChanges", ImportChangesButtonStyle);
 	Style->Set("ArticyImporter.Button.RegenerateAssets", RegenerateAssetsButtonStyle);
 
+	// Define styles for various asset types and UI elements.
 	Style->Set("ArticyImporter.AssetPicker.TileBackground.96", new IMAGE_BRUSH(TEXT("128/content_tile_fill"), Icon96x96));
 	Style->Set("ArticyImporter.AssetPicker.TileBorder.16", new BOX_BRUSH(TEXT("Border"), 4.f / 16.f));
-	
+
 	Style->Set("ArticyImporter.Type.DialogueFragment.16", new IMAGE_BRUSH(TEXT("128/dialoguefragment"), Icon16x16));
 	Style->Set("ArticyImporter.Type.Dialogue.16", new IMAGE_BRUSH(TEXT("128/dialogue2"), Icon16x16));
 	Style->Set("ArticyImporter.Type.Entity.16", new IMAGE_BRUSH(TEXT("128/entity"), Icon16x16));
@@ -141,8 +159,6 @@ TSharedRef< FSlateStyleSet > FArticyEditorStyle::Create()
 	Style->Set("ArticyImporter.Type.Spot.16", new IMAGE_BRUSH(TEXT("256/spot"), Icon16x16));
 	Style->Set("ArticyImporter.Type.Path.16", new IMAGE_BRUSH(TEXT("256/path"), Icon16x16));
 
-
-	
 	Style->Set("ArticyImporter.Type.DialogueFragment.32", new IMAGE_BRUSH(TEXT("128/dialoguefragment"), Icon32x32));
 	Style->Set("ArticyImporter.Type.Dialogue.32", new IMAGE_BRUSH(TEXT("128/dialogue2"), Icon32x32));
 	Style->Set("ArticyImporter.Type.Entity.32", new IMAGE_BRUSH(TEXT("128/entity"), Icon32x32));
@@ -163,7 +179,6 @@ TSharedRef< FSlateStyleSet > FArticyEditorStyle::Create()
 	Style->Set("ArticyImporter.Type.Document.32", new IMAGE_BRUSH(TEXT("128/document"), Icon32x32));
 	Style->Set("ArticyImporter.Type.Spot.32", new IMAGE_BRUSH(TEXT("256/spot"), Icon32x32));
 	Style->Set("ArticyImporter.Type.Path.32", new IMAGE_BRUSH(TEXT("256/path"), Icon32x32));
-
 
 	Style->Set("ArticyImporter.Type.DialogueFragment.64", new IMAGE_BRUSH(TEXT("128/dialoguefragment"), Icon64x64));
 	Style->Set("ArticyImporter.Type.Dialogue.64", new IMAGE_BRUSH(TEXT("128/dialogue2"), Icon64x64));
@@ -186,7 +201,6 @@ TSharedRef< FSlateStyleSet > FArticyEditorStyle::Create()
 	Style->Set("ArticyImporter.Type.Spot.64", new IMAGE_BRUSH(TEXT("256/spot"), Icon64x64));
 	Style->Set("ArticyImporter.Type.Path.64", new IMAGE_BRUSH(TEXT("256/path"), Icon64x64));
 
-	
 	return Style;
 }
 
@@ -196,6 +210,9 @@ TSharedRef< FSlateStyleSet > FArticyEditorStyle::Create()
 #undef TTF_FONT
 #undef OTF_FONT
 
+/**
+ * Reload the textures used by the Slate renderer, useful when updating resources.
+ */
 void FArticyEditorStyle::ReloadTextures()
 {
 	if (FSlateApplication::IsInitialized())
@@ -204,6 +221,11 @@ void FArticyEditorStyle::ReloadTextures()
 	}
 }
 
+/**
+ * Get the Slate style instance.
+ *
+ * @return Reference to the current Slate style.
+ */
 const ISlateStyle& FArticyEditorStyle::Get()
 {
 	return *StyleInstance;

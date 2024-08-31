@@ -10,28 +10,45 @@
 #include "CodeFileGenerator.h"
 #include "CodeGenerator.h"
 
+/**
+ * @brief Generates code for the ArticyType class from import data.
+ *
+ * This function creates a header file for the ArticyTypeSystem based on
+ * the provided import data and updates the output file name.
+ *
+ * @param Data The import data used to generate the ArticyType class.
+ * @param OutFile The output file name for the generated code.
+ */
 void ArticyTypeGenerator::GenerateCode(const UArticyImportData* Data, FString& OutFile)
 {
-	if(!ensure(Data))
+	if (!ensure(Data))
 		return;
 
 	OutFile = CodeGenerator::GetArticyTypeClassname(Data, true);
 	CodeFileGenerator(OutFile + ".h", true, [&](CodeFileGenerator* header)
-	{
-		header->Line("#include \"CoreUObject.h\"");
-		header->Line("#include \"ArticyTypeSystem.h\"");
-		header->Line("#include \"" + OutFile + ".generated.h\"");
-
-		header->Line();
-
-		// Generate the UArticyTypeSystem class
-		const auto type = CodeGenerator::GetArticyTypeClassname(Data, false);
-		header->Class(type + " : public UArticyTypeSystem", TEXT("Articy Type System"), true, [&]
 		{
+			header->Line("#include \"CoreUObject.h\"");
+			header->Line("#include \"ArticyTypeSystem.h\"");
+			header->Line("#include \"" + OutFile + ".generated.h\"");
+
+			header->Line();
+
+			// Generate the UArticyTypeSystem class
+			const auto type = CodeGenerator::GetArticyTypeClassname(Data, false);
+			header->Class(type + " : public UArticyTypeSystem", TEXT("Articy Type System"), true, [&]
+				{
+				});
 		});
-	});
 }
 
+/**
+ * @brief Generates an Articy type asset from import data.
+ *
+ * This function creates a new ArticyTypeSystem asset based on the provided
+ * import data, populates it with type information, and registers it with the asset registry.
+ *
+ * @param Data The import data used to generate the Articy type asset.
+ */
 void ArticyTypeGenerator::GenerateAsset(const UArticyImportData* Data)
 {
 	const auto ClassName = CodeGenerator::GetArticyTypeClassname(Data, true);
@@ -45,11 +62,11 @@ void ArticyTypeGenerator::GenerateAsset(const UArticyImportData* Data)
 		{
 			// Load type information
 			CreatedAsset->Types.Reset();
-			for(const auto type : Data->GetObjectDefs().GetTypes())
+			for (const auto type : Data->GetObjectDefs().GetTypes())
 			{
 				CreatedAsset->Types.Add(type.Key.ToString(), type.Value.ArticyType);
 			}
-		
+
 			// Notify the asset registry
 			FAssetRegistryModule::AssetCreated(Cast<UObject>(CreatedAsset));
 

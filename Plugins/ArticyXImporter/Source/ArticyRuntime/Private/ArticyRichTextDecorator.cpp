@@ -27,6 +27,13 @@ public:
 		}
 	}
 
+	/**
+	 * Determines if this decorator supports the given text run based on its metadata.
+	 *
+	 * @param RunParseResult The parsed results of the text run.
+	 * @param Text The text of the run.
+	 * @return True if the decorator supports the run (i.e., has a color or link attribute), otherwise false.
+	 */
 	virtual bool Supports(const FTextRunParseResults& RunParseResult, const FString& Text) const override
 	{
 		// Always true if color appears as an attribute
@@ -34,7 +41,7 @@ public:
 			return true;
 
 		// Always true if link appears as an attribute
-		if(RunParseResult.MetaData.Contains(TEXT("link")))
+		if (RunParseResult.MetaData.Contains(TEXT("link")))
 			return true;
 
 		return false;
@@ -42,8 +49,15 @@ public:
 
 protected:
 #if ENGINE_MAJOR_VERSION >= 5 || (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 25)
-    virtual void CreateDecoratorText(const FTextRunInfo& RunInfo, FTextBlockStyle& InOutTextStyle, FString& InOutString) const override
-    {
+	/**
+	 * Creates and applies text decoration based on the run info.
+	 *
+	 * @param RunInfo Information about the text run.
+	 * @param InOutTextStyle The style to apply to the text.
+	 * @param InOutString The string being constructed.
+	 */
+	virtual void CreateDecoratorText(const FTextRunInfo& RunInfo, FTextBlockStyle& InOutTextStyle, FString& InOutString) const override
+	{
 		// Add text to string
 		InOutString += RunInfo.Content.ToString();
 
@@ -65,16 +79,23 @@ protected:
 			const FString color = RunInfo.MetaData[TEXT("color")];
 			InOutTextStyle.ColorAndOpacity = FSlateColor(FColor::FromHex(color));
 		}
-    }
+	}
 #endif
 
+	/**
+	 * Creates a widget for text decoration based on the run info.
+	 *
+	 * @param RunInfo Information about the text run.
+	 * @param TextStyle The style applied to the text.
+	 * @return A shared pointer to the created widget, or nullptr if no widget was created.
+	 */
 	virtual TSharedPtr<SWidget> CreateDecoratorWidget(const FTextRunInfo& RunInfo, const FTextBlockStyle& TextStyle) const override
 	{
 		// Get link destination
 		const FString* Reference = RunInfo.MetaData.Find(TEXT("link"));
 
 		// If this isn't a link, don't use this behavior 
-		if(Reference == nullptr) { return nullptr; }
+		if (Reference == nullptr) { return nullptr; }
 
 		// Create delegate
 		FSimpleDelegate onNavigate;
@@ -94,7 +115,11 @@ private:
 	// Pointer to our parent decorator
 	UArticyRichTextDecorator* Decorator = nullptr;
 
-	// Gets the style table from the owning rich text block
+	/**
+	 * Gets the style table from the owning rich text block.
+	 *
+	 * @return A pointer to the style table, or nullptr if the table could not be retrieved.
+	 */
 	UDataTable* GetStyleTable() const
 	{
 		if (DataTableProp == nullptr) {
@@ -109,14 +134,25 @@ UArticyRichTextDecorator::UArticyRichTextDecorator(const FObjectInitializer& Obj
 {
 }
 
+/**
+ * Creates a new instance of the text decorator for the specified rich text block.
+ *
+ * @param InOwner The rich text block to decorate.
+ * @return A shared pointer to the newly created text decorator.
+ */
 TSharedPtr<ITextDecorator> UArticyRichTextDecorator::CreateDecorator(URichTextBlock* InOwner)
 {
 	return MakeShareable(new FArticyRichTextDecorator(InOwner, this));
 }
 
+/**
+ * Finds the parent widget that implements the Articy hyperlink handler interface.
+ *
+ * @param RichTextBlock The rich text block to search from.
+ * @return The widget implementing the hyperlink handler interface, or nullptr if not found.
+ */
 UObject* UArticyRichTextDecorator::GetHyperlinkHandler(URichTextBlock* RichTextBlock)
 {
-	// Try to find a parent that implements the handler interface
 	UWidget* Widget = RichTextBlock;
 	while (Widget != nullptr && !Widget->GetClass()->ImplementsInterface(UArticyHyperlinkHandler::StaticClass()))
 	{
@@ -133,20 +169,26 @@ UObject* UArticyRichTextDecorator::GetHyperlinkHandler(URichTextBlock* RichTextB
 	}
 
 	// No widget in the hierarchy implements the handler interface.
-	if(Widget == nullptr) { return nullptr; }
+	if (Widget == nullptr) { return nullptr; }
 
 	// Return interface
 	return Widget;
 }
 
+/**
+ * Resolves the link text into an Articy object based on the provided URL.
+ *
+ * @param Owner The owning rich text block.
+ * @param Link The URL to resolve.
+ * @return The Articy object referenced by the URL, or nullptr if not found.
+ */
 UArticyObject* UArticyRichTextDecorator::GetLinkDestination(URichTextBlock* Owner, const FString& Link)
 {
-	// Resolve the link text into an articy object
 	static FRegexPattern Pattern(TEXT("articy:\\/\\/localhost\\/view\\/~\\/(\\d+)"));
 	FRegexMatcher myMatcher(Pattern, Link);
 
 	// If the link doesn't match the expected format, abort.
-	if(!myMatcher.FindNext()) { return nullptr; }
+	if (!myMatcher.FindNext()) { return nullptr; }
 
 	// Get numeric id
 	FString Id = myMatcher.GetCaptureGroup(1);
@@ -156,15 +198,20 @@ UArticyObject* UArticyRichTextDecorator::GetLinkDestination(URichTextBlock* Owne
 	return UArticyDatabase::Get(Owner)->GetObject(id);
 }
 
+/**
+ * Handles the navigation of an Articy link by resolving the link and notifying the hyperlink handler.
+ *
+ * @param Parent The parent rich text block.
+ * @param Link The link that was navigated to.
+ */
 void UArticyRichTextDecorator::OnArticyLinkNavigated(URichTextBlock* Parent, const FString Link)
 {
-	// Try to find a parent that implements the handler interface
 	auto Widget = GetHyperlinkHandler(Parent);
-	if(Widget == nullptr) { return; }
-	
+	if (Widget == nullptr) { return; }
+
 	// Resolve the link text into an articy object
 	UArticyObject* Object = GetLinkDestination(Parent, Link);
-	if(!Object) { return; }
+	if (!Object) { return; }
 
 	// Call handler
 	IArticyHyperlinkHandler::Execute_OnHyperlinkNavigated(Widget, Object, Parent);

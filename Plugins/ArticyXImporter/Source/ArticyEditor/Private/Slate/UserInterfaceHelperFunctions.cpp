@@ -19,19 +19,26 @@
 #include "Styling/ISlateStyle.h"
 #include "Styling/SlateBrush.h"
 
+/**
+ * Retrieves the type image associated with an Articy object based on its type and specified size.
+ *
+ * @param ArticyObject The Articy object for which to retrieve the type image.
+ * @param Size The desired size of the image (Small, Medium, or Large).
+ * @return The Slate brush representing the type image for the specified Articy object.
+ */
 const FSlateBrush* UserInterfaceHelperFunctions::GetArticyTypeImage(const UArticyObject* ArticyObject, UserInterfaceHelperFunctions::EImageSize Size)
 {
-	if(!ArticyObject)
+	if (!ArticyObject)
 	{
 		return FArticyEditorStyle::Get().GetBrush(FName(TEXT("ArticyImporter.ArticyImporter.64")));
 	}
 
 	FString SizeString = "";
-	if(Size == EImageSize::Large)
+	if (Size == EImageSize::Large)
 	{
 		SizeString.Append("64");
 	}
-	else if(Size == EImageSize::Medium)
+	else if (Size == EImageSize::Medium)
 	{
 		SizeString.Append("32");
 	}
@@ -39,12 +46,12 @@ const FSlateBrush* UserInterfaceHelperFunctions::GetArticyTypeImage(const UArtic
 	{
 		SizeString.Append("16");
 	}
-	
-	if(ArticyObject->IsA<UArticyDialogueFragment>())
+
+	if (ArticyObject->IsA<UArticyDialogueFragment>())
 	{
 		return FArticyEditorStyle::Get().GetBrush(FName(*FString("ArticyImporter.Type.DialogueFragment.").Append(SizeString)));
 	}
-	else if(ArticyObject->IsA<UArticyDialogue>())
+	else if (ArticyObject->IsA<UArticyDialogue>())
 	{
 		return FArticyEditorStyle::Get().GetBrush(FName(*FString("ArticyImporter.Type.Dialogue.").Append(SizeString)));
 	}
@@ -124,10 +131,16 @@ const FSlateBrush* UserInterfaceHelperFunctions::GetArticyTypeImage(const UArtic
 	return FArticyEditorStyle::Get().GetBrush(FName(*FString("ArticyImporter.ArticyImporter.64")));
 }
 
+/**
+ * Retrieves the display image (preview image) associated with an Articy object.
+ *
+ * @param ArticyObject The Articy object for which to retrieve the display image.
+ * @return The texture representing the display image for the specified Articy object.
+ */
 UTexture2D* UserInterfaceHelperFunctions::GetDisplayImage(const UArticyObject* ArticyObject)
 {
 	UTexture2D* Image = nullptr;
-	
+
 	if (!ArticyObject)
 	{
 		return Image;
@@ -150,11 +163,18 @@ UTexture2D* UserInterfaceHelperFunctions::GetDisplayImage(const UArticyObject* A
 	return Image;
 }
 
+/**
+ * Retrieves the preview image associated with an Articy object and assigns it to the specified Slate brush.
+ *
+ * @param ArticyObject The Articy object for which to retrieve the preview image.
+ * @param OutSlateBrush The Slate brush to which the preview image will be assigned.
+ * @return True if a preview image was successfully retrieved and assigned; otherwise, false.
+ */
 bool UserInterfaceHelperFunctions::RetrievePreviewImage(const UArticyObject* ArticyObject, FSlateBrush& OutSlateBrush)
 {
 	UTexture2D* PreviewImage = GetDisplayImage(ArticyObject);
 
-	if(PreviewImage)
+	if (PreviewImage)
 	{
 		OutSlateBrush.SetResourceObject(PreviewImage);
 		return true;
@@ -163,11 +183,18 @@ bool UserInterfaceHelperFunctions::RetrievePreviewImage(const UArticyObject* Art
 	return false;
 }
 
+/**
+ * Retrieves the preview image associated with the speaker of an Articy object and assigns it to the specified Slate brush.
+ *
+ * @param ArticyObject The Articy object for which to retrieve the speaker's preview image.
+ * @param OutSlateBrush The Slate brush to which the speaker's preview image will be assigned.
+ * @return True if a speaker's preview image was successfully retrieved and assigned; otherwise, false.
+ */
 bool UserInterfaceHelperFunctions::RetrieveSpeakerPreviewImage(const UArticyObject* ArticyObject, FSlateBrush& OutSlateBrush)
 {
 	const IArticyObjectWithSpeaker* ArticyObjectWithSpeaker = Cast<IArticyObjectWithSpeaker>(ArticyObject);
 
-	if(ArticyObjectWithSpeaker)
+	if (ArticyObjectWithSpeaker)
 	{
 		UArticyObject* Speaker = UArticyObject::FindAsset(ArticyObjectWithSpeaker->GetSpeakerId());
 		return RetrievePreviewImage(Speaker, OutSlateBrush);
@@ -176,24 +203,30 @@ bool UserInterfaceHelperFunctions::RetrieveSpeakerPreviewImage(const UArticyObje
 	return false;
 }
 
+/**
+ * Retrieves the target ID associated with an Articy object.
+ *
+ * @param ArticyObject The Articy object for which to retrieve the target ID.
+ * @return A pointer to the target ID associated with the specified Articy object.
+ */
 const FArticyId* UserInterfaceHelperFunctions::GetTargetID(const UArticyObject* ArticyObject)
 {
-	if(!ArticyObject)
-	{
-		return nullptr; 
-	}
-	
-	static const auto PropName = FName("Target");
-	FProperty* Prop = ArticyObject->GetProperty(PropName);
-
-	if(!Prop)
+	if (!ArticyObject)
 	{
 		return nullptr;
 	}
-	
+
+	static const auto PropName = FName("Target");
+	FProperty* Prop = ArticyObject->GetProperty(PropName);
+
+	if (!Prop)
+	{
+		return nullptr;
+	}
+
 	const FArticyId* TargetID = Prop->ContainerPtrToValuePtr<FArticyId>(ArticyObject);
 
-	if(TargetID)
+	if (TargetID)
 	{
 		return TargetID;
 	}
@@ -201,15 +234,21 @@ const FArticyId* UserInterfaceHelperFunctions::GetTargetID(const UArticyObject* 
 	return nullptr;
 }
 
+/**
+ * Retrieves the display name associated with an Articy object.
+ *
+ * @param ArticyObject The Articy object for which to retrieve the display name.
+ * @return The string representing the display name for the specified Articy object.
+ */
 const FString UserInterfaceHelperFunctions::GetDisplayName(const UArticyObject* ArticyObject)
 {
 	FString DisplayName = "None";
-	
+
 	if (!ArticyObject)
 	{
 		return DisplayName;
 	}
-	
+
 	const FArticyId* TargetID = UserInterfaceHelperFunctions::GetTargetID(ArticyObject);
 	if (TargetID)
 	{
@@ -220,12 +259,12 @@ const FString UserInterfaceHelperFunctions::GetDisplayName(const UArticyObject* 
 			return GetDisplayName(TargetObject);
 		}
 	}
-	
+
 	// use the display name as display name, if available
 	const IArticyObjectWithDisplayName* ArticyObjectWithDisplayName = Cast<IArticyObjectWithDisplayName>(ArticyObject);
 	if (ArticyObjectWithDisplayName)
 	{
-		 DisplayName = ArticyObjectWithDisplayName->GetDisplayName().ToString();
+		DisplayName = ArticyObjectWithDisplayName->GetDisplayName().ToString();
 
 		if (!DisplayName.IsEmpty())
 		{
@@ -254,14 +293,19 @@ const FString UserInterfaceHelperFunctions::GetDisplayName(const UArticyObject* 
 			return DisplayName;
 		}
 	}
-	
+
 	return DisplayName;
 }
 
+/**
+ * Retrieves the color associated with an Articy object.
+ *
+ * @param ArticyObject The Articy object for which to retrieve the color.
+ * @return The linear color associated with the specified Articy object.
+ */
 const FLinearColor UserInterfaceHelperFunctions::GetColor(const UArticyObject* ArticyObject)
 {
 	FLinearColor Color(0.577, 0.76, 0.799);
-
 
 	if (!ArticyObject)
 	{
@@ -279,37 +323,50 @@ const FLinearColor UserInterfaceHelperFunctions::GetColor(const UArticyObject* A
 			return GetColor(TargetObject);
 		}
 	}
-	
+
 	const IArticyObjectWithColor* ObjectWithColor = Cast<IArticyObjectWithColor>(ArticyObject);
-	if(ObjectWithColor)
+	if (ObjectWithColor)
 	{
 		Color = ObjectWithColor->GetColor();
 		return Color;
-	}	
-	
+	}
+
 	return Color;
 }
 
+/**
+ * Displays an Articy object in the Articy software.
+ *
+ * @param ArticyObject The Articy object to be displayed.
+ * @return True if the Articy object was successfully displayed; otherwise, false.
+ */
 const bool UserInterfaceHelperFunctions::ShowObjectInArticy(const UArticyObject* ArticyObject)
 {
-	if(ArticyObject== nullptr)
+	if (ArticyObject == nullptr)
 	{
 		return false;
-	}	
+	}
 
 	bool bNewTab = false;
-    if(ArticyObject->IsA(UArticyNode::StaticClass())) 
+	if (ArticyObject->IsA(UArticyNode::StaticClass()))
 	{
-        bNewTab = false;
-    }
-	else 
+		bNewTab = false;
+	}
+	else
 	{
 		bNewTab = true;
 	}
-	
+
 	return ShowObjectInArticy(ArticyObject->GetId(), bNewTab);
 }
 
+/**
+ * Displays an Articy object with the specified ID in the Articy software.
+ *
+ * @param ArticyId The ID of the Articy object to be displayed.
+ * @param bNewTab Specifies whether to open the object in a new tab (true) or the current tab (false).
+ * @return True if the Articy object was successfully displayed; otherwise, false.
+ */
 const bool UserInterfaceHelperFunctions::ShowObjectInArticy(const FArticyId ArticyId, bool bNewTab)
 {
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
@@ -321,7 +378,7 @@ const bool UserInterfaceHelperFunctions::ShowObjectInArticy(const FArticyId Arti
 #else
 	AssetRegistryModule.Get().GetAssetsByClass(UArticyImportData::StaticClass()->GetFName(), OutAssetData, false);
 #endif
-	
+
 	FString TabURL = bNewTab ? FString("new") : FString("current");
 	if (OutAssetData.Num() == 1)
 	{

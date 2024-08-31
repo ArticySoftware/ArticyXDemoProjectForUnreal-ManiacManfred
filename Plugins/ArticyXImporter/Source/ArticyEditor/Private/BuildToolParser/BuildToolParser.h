@@ -1,5 +1,5 @@
-//  
-// Copyright (c) 2023 articy Software GmbH & Co. KG. All rights reserved.  
+//
+// Copyright (c) 2023 articy Software GmbH & Co. KG. All rights reserved.
 //
 
 #pragma once
@@ -7,35 +7,55 @@
 #include "CoreMinimal.h"
 #include "Misc/FileHelper.h"
 
+/**
+ * @class BuildToolParser
+ * @brief A class to parse build tool files and manage Articy runtime references.
+ */
 class BuildToolParser
 {
 public:
-	
-	BuildToolParser(const FString& filePath);
-	bool VerifyArticyRuntimeRef();
-	void AddArticyRuntimmeRef();
-	~BuildToolParser() {};
+    /**
+     * @brief Constructs a BuildToolParser object with the specified file path.
+     * @param filePath The path to the build tool file.
+     */
+    BuildToolParser(const FString& filePath);
+
+    /**
+     * @brief Verifies the presence of Articy runtime references in the build tool file.
+     * @return true if the Articy runtime reference is found, false otherwise.
+     */
+    bool VerifyArticyRuntimeRef();
+
+    /**
+     * @brief Adds Articy runtime references to the build tool file if not already present.
+     */
+    void AddArticyRuntimmeRef();
+
+    /**
+     * @brief Default destructor for BuildToolParser.
+     */
+    ~BuildToolParser() {};
 
 private:
-	// Enforce using parameterized constructor
-	BuildToolParser() {};
-	
-	/**
-	 * @brief Return new string where single and multi line C# comments have been removed.
-	 * @param line : the string from which comments must be removed.
-	 * @return a new string where comments have been removed.
-	 */
-	FString RemoveComments(FString line);
+    // Enforce using parameterized constructor
+    BuildToolParser() {};
 
-	/**
-	 * @brief Return a list of all dependency modules lines from a string
-	 * @param line : the string without comments  
-	 * @return a list of the dependency modules c# code lines
-	 */
-	bool CheckReferences(FString line);
-	
-	int PublicDependencyIndex;
-	FString Path = TEXT("");
-	TArray <FString> PublicDependencyModulesNames;
-	TArray <FString> FileCodeLines;
+    /**
+     * @brief Removes single and multi-line C# comments from a string.
+     * @param line The string from which comments must be removed.
+     * @return A new string with comments removed.
+     */
+    FString RemoveComments(FString line);
+
+    /**
+     * @brief Checks references and returns a list of all dependency module lines from a string.
+     * @param line The string without comments.
+     * @return true if dependency modules are found, false otherwise.
+     */
+    bool CheckReferences(FString line);
+
+    int PublicDependencyIndex; ///< Index of public dependency.
+    FString Path = TEXT(""); ///< Path to the build tool file.
+    TArray<FString> PublicDependencyModulesNames; ///< Names of public dependency modules.
+    TArray<FString> FileCodeLines; ///< Lines of code from the file.
 };

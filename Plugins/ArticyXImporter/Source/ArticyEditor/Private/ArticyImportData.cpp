@@ -27,6 +27,11 @@
 
 #define LOCTEXT_NAMESPACE "ArticyImportData"
 
+/**
+ * Imports settings from a JSON object.
+ *
+ * @param Json The JSON object to import from.
+ */
 void FADISettings::ImportFromJson(TSharedPtr<FJsonObject> Json)
 {
 	if (!Json.IsValid())
@@ -46,13 +51,19 @@ void FADISettings::ImportFromJson(TSharedPtr<FJsonObject> Json)
 		ObjectDefinitionsTextHash.Reset();
 		ScriptFragmentsHash.Reset();
 	}
-	
+
 	JSON_TRY_BOOL(Json, set_Localization);
 	JSON_TRY_STRING(Json, set_TextFormatter);
 	JSON_TRY_BOOL(Json, set_UseScriptSupport);
 	JSON_TRY_STRING(Json, ExportVersion);
 }
 
+/**
+ * Imports project definition from a JSON object.
+ *
+ * @param Json The JSON object to import from.
+ * @param Settings The settings to be updated.
+ */
 void FArticyProjectDef::ImportFromJson(const TSharedPtr<FJsonObject> Json, FADISettings& Settings)
 {
 	if (!Json.IsValid())
@@ -76,6 +87,11 @@ void FArticyProjectDef::ImportFromJson(const TSharedPtr<FJsonObject> Json, FADIS
 	JSON_TRY_STRING(Json, DetailName);
 }
 
+/**
+ * Retrieves the C++ type string representation for the global variable.
+ *
+ * @return The C++ type string.
+ */
 FString FArticyGVar::GetCPPTypeString() const
 {
 	switch (Type)
@@ -94,6 +110,11 @@ FString FArticyGVar::GetCPPTypeString() const
 	}
 }
 
+/**
+ * Retrieves the C++ value string representation for the global variable.
+ *
+ * @return The C++ value string.
+ */
 FString FArticyGVar::GetCPPValueString() const
 {
 	FString value;
@@ -122,6 +143,11 @@ FString FArticyGVar::GetCPPValueString() const
 	return value;
 }
 
+/**
+ * Imports global variable data from a JSON object.
+ *
+ * @param JsonVar The JSON object representing the variable.
+ */
 void FArticyGVar::ImportFromJson(const TSharedPtr<FJsonObject> JsonVar)
 {
 	if (!JsonVar.IsValid())
@@ -141,7 +167,7 @@ void FArticyGVar::ImportFromJson(const TSharedPtr<FJsonObject> JsonVar)
 		{
 			if (typeString != TEXT("String"))
 				UE_LOG(LogArticyEditor, Error, TEXT("Unknown GlobalVariable type '%s', falling back to String."),
-			       *typeString);
+					*typeString);
 
 			Type = EArticyType::ADT_String;
 		}
@@ -161,6 +187,12 @@ void FArticyGVar::ImportFromJson(const TSharedPtr<FJsonObject> JsonVar)
 	}
 }
 
+/**
+ * Imports namespace data from a JSON object.
+ *
+ * @param JsonNamespace The JSON object representing the namespace.
+ * @param Data The import data object.
+ */
 void FArticyGVNamespace::ImportFromJson(const TSharedPtr<FJsonObject> JsonNamespace, const UArticyImportData* Data)
 {
 	if (!JsonNamespace.IsValid())
@@ -185,6 +217,12 @@ void FArticyGVNamespace::ImportFromJson(const TSharedPtr<FJsonObject> JsonNamesp
 	}
 }
 
+/**
+ * Imports global variable information from a JSON array.
+ *
+ * @param Json The JSON array representing the global variables.
+ * @param Data The import data object.
+ */
 void FArticyGVInfo::ImportFromJson(const TArray<TSharedPtr<FJsonValue>>* Json, const UArticyImportData* Data)
 {
 	Namespaces.Reset(Json ? Json->Num() : 0);
@@ -206,62 +244,77 @@ void FArticyGVInfo::ImportFromJson(const TArray<TSharedPtr<FJsonValue>>* Json, c
 
 //---------------------------------------------------------------------------//
 
+/**
+ * Retrieves the C++ return type string for the script method.
+ *
+ * @return The C++ return type string.
+ */
 const FString& FAIDScriptMethod::GetCPPReturnType() const
 {
 	//TODO change this once the ReturnType is changed from C#-style ('System.Void' ecc.) to something more generic!
 	if (ReturnType == "string")
 	{
-		const static auto String = FString{"const FString"};
+		const static auto String = FString{ "const FString" };
 		return String;
 	}
 	if (ReturnType == "object")
 	{
 		// object is pretty much all encompassing. We only support them as UArticyPrimitives right now, which means GetObj(...) and self works.
-		const static auto ArticyPrimitive = FString{"UArticyPrimitive*"};
+		const static auto ArticyPrimitive = FString{ "UArticyPrimitive*" };
 		return ArticyPrimitive;
 	}
 
 	return ReturnType;
 }
 
+/**
+ * Retrieves the default C++ return value string for the script method.
+ *
+ * @return The default C++ return value string.
+ */
 const FString& FAIDScriptMethod::GetCPPDefaultReturn() const
 {
 	//TODO change this once the ReturnType is changed from C#-style ('System.Void' ecc.) to something more generic!
 	if (ReturnType == "bool")
 	{
-		const static auto True = FString{"true"};
+		const static auto True = FString{ "true" };
 		return True;
 	}
 	if (ReturnType == "int" || ReturnType == "float")
 	{
-		const static auto Zero = FString{"0"};
+		const static auto Zero = FString{ "0" };
 		return Zero;
 	}
 	if (ReturnType == "string")
 	{
-		const static auto EmptyString = FString{"\"\""};
+		const static auto EmptyString = FString{ "\"\"" };
 		return EmptyString;
 	}
 	if (ReturnType == "ArticyObject")
 	{
-		const static auto ArticyObject = FString{"nullptr"};
+		const static auto ArticyObject = FString{ "nullptr" };
 		return ArticyObject;
 	}
 	if (ReturnType == "ArticyString")
 	{
-		const static auto ArticyObject = FString{"nullptr"};
+		const static auto ArticyObject = FString{ "nullptr" };
 		return ArticyObject;
 	}
 	if (ReturnType == "ArticyMultiLanguageString")
 	{
-		const static auto ArticyObject = FString{"nullptr"};
+		const static auto ArticyObject = FString{ "nullptr" };
 		return ArticyObject;
 	}
 
-	const static auto Nothing = FString{""};
+	const static auto Nothing = FString{ "" };
 	return Nothing;
 }
 
+/**
+ * Retrieves the C++ parameters string for the script method.
+ *
+ * @return The C++ parameters string.
+ */
 const FString FAIDScriptMethod::GetCPPParameters() const
 {
 	FString Parameters = "";
@@ -285,6 +338,11 @@ const FString FAIDScriptMethod::GetCPPParameters() const
 	return Parameters.LeftChop(2);
 }
 
+/**
+ * Retrieves the argument string for the script method.
+ *
+ * @return The argument string.
+ */
 const FString FAIDScriptMethod::GetArguments() const
 {
 	FString Parameters = "";
@@ -297,6 +355,11 @@ const FString FAIDScriptMethod::GetArguments() const
 	return Parameters.LeftChop(2);
 }
 
+/**
+ * Retrieves the original parameters string for display name generation.
+ *
+ * @return The original parameters string.
+ */
 const FString FAIDScriptMethod::GetOriginalParametersForDisplayName() const
 {
 	FString DisplayNameSuffix = "";
@@ -309,6 +372,12 @@ const FString FAIDScriptMethod::GetOriginalParametersForDisplayName() const
 	return DisplayNameSuffix.LeftChop(2);
 }
 
+/**
+ * Imports script method data from a JSON object.
+ *
+ * @param Json The JSON object representing the script method.
+ * @param OverloadedMethods Set of overloaded method names.
+ */
 void FAIDScriptMethod::ImportFromJson(TSharedPtr<FJsonObject> Json, TSet<FString>& OverloadedMethods)
 {
 	JSON_TRY_STRING(Json, Name);
@@ -361,6 +430,11 @@ void FAIDScriptMethod::ImportFromJson(TSharedPtr<FJsonObject> Json, TSet<FString
 	}
 }
 
+/**
+ * Imports user-defined script methods from a JSON array.
+ *
+ * @param Json The JSON array representing the script methods.
+ */
 void FAIDUserMethods::ImportFromJson(const TArray<TSharedPtr<FJsonValue>>* Json)
 {
 	ScriptMethods.Reset(Json ? Json->Num() : 0);
@@ -388,6 +462,13 @@ void FAIDUserMethods::ImportFromJson(const TArray<TSharedPtr<FJsonValue>>* Json)
 
 //---------------------------------------------------------------------------//
 
+/**
+ * Creates a hierarchy object from a JSON object.
+ *
+ * @param Outer The outer object.
+ * @param JsonObject The JSON object representing the hierarchy.
+ * @return The created hierarchy object.
+ */
 UADIHierarchyObject* UADIHierarchyObject::CreateFromJson(UObject* Outer, const TSharedPtr<FJsonObject> JsonObject)
 {
 	if (!JsonObject.IsValid())
@@ -422,6 +503,12 @@ UADIHierarchyObject* UADIHierarchyObject::CreateFromJson(UObject* Outer, const T
 	return obj;
 }
 
+/**
+ * Imports hierarchy data from a JSON object.
+ *
+ * @param ImportData The import data object.
+ * @param Json The JSON object representing the hierarchy.
+ */
 void FADIHierarchy::ImportFromJson(UArticyImportData* ImportData, const TSharedPtr<FJsonObject> Json)
 {
 	RootObject = nullptr;
@@ -433,6 +520,11 @@ void FADIHierarchy::ImportFromJson(UArticyImportData* ImportData, const TSharedP
 	RootObject = UADIHierarchyObject::CreateFromJson(ImportData, Json);
 }
 
+/**
+ * Imports language definition data from a JSON object.
+ *
+ * @param Json The JSON object representing the language definition.
+ */
 void FArticyLanguageDef::ImportFromJson(const TSharedPtr<FJsonObject>& Json)
 {
 	if (!Json.IsValid())
@@ -444,6 +536,11 @@ void FArticyLanguageDef::ImportFromJson(const TSharedPtr<FJsonObject>& Json)
 	JSON_TRY_BOOL(Json, IsVoiceOver);
 }
 
+/**
+ * Imports language data from a JSON object.
+ *
+ * @param Json The JSON object representing the languages.
+ */
 void FArticyLanguages::ImportFromJson(const TSharedPtr<FJsonObject>& Json)
 {
 	if (!Json.IsValid())
@@ -453,12 +550,15 @@ void FArticyLanguages::ImportFromJson(const TSharedPtr<FJsonObject>& Json)
 		FArticyLanguageDef def;
 		def.ImportFromJson(item->AsObject());
 		Languages.Add(def.CultureName, def);
-	});
+		});
 }
 
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 
+/**
+ * Initializes properties after construction.
+ */
 void UArticyImportData::PostInitProperties()
 {
 	Super::PostInitProperties();
@@ -472,20 +572,28 @@ void UArticyImportData::PostInitProperties()
 }
 
 #if WITH_EDITORONLY_DATA
+/**
+ * Retrieves asset registry tags for the import data.
+ *
+ * @param OutTags The array to fill with asset registry tags.
+ */
 void UArticyImportData::GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags) const
 {
 	if (ImportData)
 	{
 		OutTags.Add(FAssetRegistryTag(SourceFileTagName(), ImportData->GetSourceData().ToJson(),
-		                              FAssetRegistryTag::TT_Hidden));
+			FAssetRegistryTag::TT_Hidden));
 	}
 
-    PRAGMA_DISABLE_DEPRECATION_WARNINGS
-	Super::GetAssetRegistryTags(OutTags);
-    PRAGMA_ENABLE_DEPRECATION_WARNINGS
+	PRAGMA_DISABLE_DEPRECATION_WARNINGS
+		Super::GetAssetRegistryTags(OutTags);
+	PRAGMA_ENABLE_DEPRECATION_WARNINGS
 }
 #endif
 
+/**
+ * Handles actions to perform after importing data.
+ */
 void UArticyImportData::PostImport()
 {
 	FArticyEditorModule& ArticyEditorModule = FModuleManager::Get().GetModuleChecked<FArticyEditorModule>(
@@ -493,6 +601,13 @@ void UArticyImportData::PostImport()
 	ArticyEditorModule.OnImportFinished.Broadcast();
 }
 
+/**
+ * Imports data from a JSON object using the specified archive.
+ *
+ * @param Archive The archive reader.
+ * @param RootObject The root JSON object.
+ * @return True if import was successful, false otherwise.
+ */
 bool UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, const TSharedPtr<FJsonObject> RootObject)
 {
 	// Abort if we will have broken packages
@@ -501,13 +616,13 @@ bool UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 
 	// Record old script fragments hash
 	const FString& OldScriptFragmentsHash = Settings.ScriptFragmentsHash;
-	
+
 	// import the main sections
 	Settings.ImportFromJson(RootObject->GetObjectField(JSON_SECTION_SETTINGS));
 
 	if (Settings.set_IncludedNodes.Contains(TEXT("Project")))
 		Project.ImportFromJson(RootObject->GetObjectField(JSON_SECTION_PROJECT), Settings);
-	
+
 	Languages.ImportFromJson(RootObject);
 
 	if (Settings.set_IncludedNodes.Contains(TEXT("Packages")))
@@ -545,10 +660,10 @@ bool UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 
 	TSharedPtr<FJsonObject> GvObject;
 	if (Archive.FetchJson(
-			RootObject,
-			JSON_SECTION_GLOBALVARS,
-			Settings.GlobalVariablesHash,
-			GvObject))
+		RootObject,
+		JSON_SECTION_GLOBALVARS,
+		Settings.GlobalVariablesHash,
+		GvObject))
 	{
 		GlobalVariables.ImportFromJson(&GvObject->GetArrayField(JSON_SECTION_GLOBALVARS), this);
 		Settings.SetObjectDefinitionsNeedRebuild();
@@ -558,10 +673,10 @@ bool UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 	const TSharedPtr<FJsonObject> ObjectDefs = RootObject->GetObjectField(JSON_SECTION_OBJECTDEFS);
 	TSharedPtr<FJsonObject> ObjTypes;
 	if (Archive.FetchJson(
-			RootObject->GetObjectField(JSON_SECTION_OBJECTDEFS),
-			JSON_SUBSECTION_TYPES,
-			Settings.ObjectDefinitionsHash,
-			ObjTypes))
+		RootObject->GetObjectField(JSON_SECTION_OBJECTDEFS),
+		JSON_SUBSECTION_TYPES,
+		Settings.ObjectDefinitionsHash,
+		ObjTypes))
 	{
 		ObjectDefinitions.ImportFromJson(&ObjTypes->GetArrayField(JSON_SECTION_OBJECTDEFS), this);
 		Settings.SetObjectDefinitionsNeedRebuild();
@@ -571,10 +686,10 @@ bool UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 	const FString OldObjectDefintionsTextHash = Settings.ObjectDefinitionsTextHash;
 	TSharedPtr<FJsonObject> ObjTexts;
 	if (Archive.FetchJson(
-			RootObject->GetObjectField(JSON_SECTION_OBJECTDEFS),
-			JSON_SUBSECTION_TEXTS,
-			Settings.ObjectDefinitionsTextHash,
-			ObjTexts))
+		RootObject->GetObjectField(JSON_SECTION_OBJECTDEFS),
+		JSON_SUBSECTION_TEXTS,
+		Settings.ObjectDefinitionsTextHash,
+		ObjTexts))
 	{
 		ObjectDefinitions.GatherText(ObjTexts);
 		Settings.SetObjectDefinitionsNeedRebuild();
@@ -585,7 +700,7 @@ bool UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 	{
 		Settings.SetScriptFragmentsNeedRebuild();
 	}
-	
+
 	if (Settings.DidScriptFragmentsChange() && this->GetSettings().set_UseScriptSupport)
 	{
 		this->GatherScripts();
@@ -603,15 +718,15 @@ bool UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 		{
 			const FText RuntimeRefNotFoundTitle = FText::FromString(TEXT("ArticyRuntime reference not found."));
 			const FText RuntimeRefNotFound = LOCTEXT("ArticyRuntimeReferenceNotFound",
-			                                         "The \"ArticyRuntime\" reference needs to be added inside the Unreal build tool.\nDo you want to add the reference automatically ?\nIf you use a custom build system or a custom build file, you can disable automatic reference verification inside the Articy Plugin settings from the Project settings.\n");
+				"The \"ArticyRuntime\" reference needs to be added inside the Unreal build tool.\nDo you want to add the reference automatically ?\nIf you use a custom build system or a custom build file, you can disable automatic reference verification inside the Articy Plugin settings from the Project settings.\n");
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 24
 			EAppReturnType::Type ReturnType = OpenMsgDlgInt(EAppMsgType::Ok, RuntimeRefNotFound, RuntimeRefNotFoundTitle);
 #elif ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
 			EAppReturnType::Type ReturnType = FMessageDialog::Open(EAppMsgType::YesNoCancel, RuntimeRefNotFound,
-																   RuntimeRefNotFoundTitle);
+				RuntimeRefNotFoundTitle);
 #else
 			EAppReturnType::Type ReturnType = FMessageDialog::Open(EAppMsgType::YesNoCancel, RuntimeRefNotFound,
-			                                                       &RuntimeRefNotFoundTitle);
+				&RuntimeRefNotFoundTitle);
 #endif
 			if (ReturnType == EAppReturnType::Yes)
 			{
@@ -640,16 +755,16 @@ bool UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 		for (const auto& Language : Languages.Languages)
 		{
 			StringTableGenerator(TEXT("ARTICY"), Language.Key, [&](StringTableGenerator* CsvOutput)
-			{
-				return ProcessStrings(CsvOutput, ObjectDefsText, Language);
-			});
+				{
+					return ProcessStrings(CsvOutput, ObjectDefsText, Language);
+				});
 		}
 	}
 
 	for (const auto& Language : Languages.Languages)
 	{
 		// Handle packages
-		for(const auto& Package : GetPackageDefs().GetPackages())
+		for (const auto& Package : GetPackageDefs().GetPackages())
 		{
 			const FString PackageName = Package.GetName();
 			const FString StringTableFileName = PackageName.Replace(TEXT(" "), TEXT("_"));
@@ -661,7 +776,7 @@ bool UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 				ISourceControlModule& SCModule = ISourceControlModule::Get();
 
 				bool bCheckOutEnabled = false;
-				if(SCModule.IsEnabled())
+				if (SCModule.IsEnabled())
 				{
 					bCheckOutEnabled = ISourceControlModule::Get().GetProvider().UsesCheckout();
 				}
@@ -674,22 +789,23 @@ bool UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 				{
 					OldPath = FPaths::ProjectContentDir() / OldFilePath;
 					NewPath = FPaths::ProjectContentDir() / NewFilePath;
-				} else {
+				}
+				else {
 					OldPath = FPaths::ProjectContentDir() / TEXT("L10N") / Language.Key / OldFilePath;
 					NewPath = FPaths::ProjectContentDir() / TEXT("L10N") / Language.Key / NewFilePath;
 				}
 				OldPath += TEXT(".csv");
 				NewPath += TEXT(".csv");
-				
+
 				// Check out and rename
-				if(PlatformFile.FileExists(*OldPath))
+				if (PlatformFile.FileExists(*OldPath))
 				{
 					if (bCheckOutEnabled)
 						USourceControlHelpers::CheckOutFile(*OldPath);
 
 					// Rename the file
 					PlatformFile.MoveFile(*NewPath, *OldPath);
-					
+
 					if (bCheckOutEnabled)
 					{
 						USourceControlHelpers::MarkFileForAdd(*NewPath);
@@ -697,15 +813,15 @@ bool UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 					}
 				}
 			}
-			
+
 			if (!Package.GetIsIncluded())
 				continue;
-			
+
 			StringTableGenerator(StringTableFileName, Language.Key,
 				[&](StringTableGenerator* CsvOutput)
-			{
-				return ProcessStrings(CsvOutput, Package.GetTexts(), Language);
-			});
+				{
+					return ProcessStrings(CsvOutput, Package.GetTexts(), Language);
+				});
 		}
 	}
 
@@ -752,6 +868,14 @@ bool UArticyImportData::ImportFromJson(const UArticyArchiveReader& Archive, cons
 	return true;
 }
 
+/**
+ * Processes strings and writes them to a CSV output.
+ *
+ * @param CsvOutput The CSV output generator.
+ * @param Data The map of strings and their associated text data.
+ * @param Language The language information.
+ * @return The number of processed strings.
+ */
 int UArticyImportData::ProcessStrings(StringTableGenerator* CsvOutput, const TMap<FString, FArticyTexts>& Data, const TPair<FString, FArticyLanguageDef>& Language)
 {
 	int Counter = 0;
@@ -789,6 +913,12 @@ int UArticyImportData::ProcessStrings(StringTableGenerator* CsvOutput, const TMa
 	return Counter > 0;
 }
 
+/**
+ * Imports audio assets from a directory.
+ *
+ * @param BaseContentDir The base content directory.
+ * @param SubDir The subdirectory to search for audio files.
+ */
 void UArticyImportData::ImportAudioAssets(const FString& BaseContentDir, const FString& SubDir)
 {
 	TArray<FString> FilesToImport;
@@ -818,7 +948,7 @@ void UArticyImportData::ImportAudioAssets(const FString& BaseContentDir, const F
 #else
 		FAssetData AssetData = AssetRegistry.GetAssetByObjectPath(FName(*PackageFileName));
 #endif
-		
+
 		if (AssetData.IsValid())
 		{
 			// Check the timestamp to determine if the asset needs updating
@@ -883,6 +1013,11 @@ void UArticyImportData::ImportAudioAssets(const FString& BaseContentDir, const F
 	}
 }
 
+/**
+ * Retrieves the import data object.
+ *
+ * @return The import data object.
+ */
 const TWeakObjectPtr<UArticyImportData> UArticyImportData::GetImportData()
 {
 	static TWeakObjectPtr<UArticyImportData> ImportData = nullptr;
@@ -910,14 +1045,14 @@ const TWeakObjectPtr<UArticyImportData> UArticyImportData::GetImportData()
 			if (AssetData.Num() > 1)
 #if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >0
 				UE_LOG(LogArticyEditor, Error,
-			       TEXT(
-				       "Found more than one import file. This is not supported by the plugin. Using the first found file for now: %s"
-			       ),
-			       *AssetData[0].GetObjectPathString());
+					TEXT(
+						"Found more than one import file. This is not supported by the plugin. Using the first found file for now: %s"
+					),
+					*AssetData[0].GetObjectPathString());
 #else
-			UE_LOG(LogArticyEditor, Error,
+				UE_LOG(LogArticyEditor, Error,
 					TEXT("Found more than one import file. This is not supported by the plugin. Using the first found file for now: %s"),
-				*AssetData[0].ObjectPath.ToString());
+					*AssetData[0].ObjectPath.ToString());
 #endif
 		}
 	}
@@ -925,6 +1060,11 @@ const TWeakObjectPtr<UArticyImportData> UArticyImportData::GetImportData()
 	return ImportData;
 }
 
+/**
+ * Retrieves the list of packages directly.
+ *
+ * @return The list of packages.
+ */
 TArray<UArticyPackage*> UArticyImportData::GetPackagesDirect()
 {
 	TArray<UArticyPackage*> Packages;
@@ -936,12 +1076,21 @@ TArray<UArticyPackage*> UArticyImportData::GetPackagesDirect()
 	return Packages;
 }
 
+/**
+ * Gathers scripts from the import data.
+ */
 void UArticyImportData::GatherScripts()
 {
 	ScriptFragments.Empty();
 	PackageDefs.GatherScripts(this);
 }
 
+/**
+ * Adds a script fragment to the import data.
+ *
+ * @param Fragment The script fragment to add.
+ * @param bIsInstruction Whether the fragment is an instruction.
+ */
 void UArticyImportData::AddScriptFragment(const FString& Fragment, const bool bIsInstruction)
 {
 	//match any group of two words separated by a dot, that does not start with a double quote
@@ -954,9 +1103,15 @@ void UArticyImportData::AddScriptFragment(const FString& Fragment, const bool bI
 	// regex pattern to find literal string, even if they contain escaped quotes (looks nasty if string escaped...): "([^"\\]|\\[\s\S])*" 
 	const FRegexPattern literalStringPattern(TEXT("\"([^\"\\\\]|\\\\[\\s\\S])*\""));
 
+	// regex patterns to match exact words "seen", "unseen" and "seenCounter"
+	const FRegexPattern seenPattern(TEXT("\\bseen\\b"));
+	const FRegexPattern unseenPattern(TEXT("\\bunseen\\b"));
+	const FRegexPattern seenCounterPattern(TEXT("\\bseenCounter\\b"));
+
 	bool bCreateBlueprintableUserMethods = UArticyPluginSettings::Get()->bCreateBlueprintTypeForScriptMethods;
 
 	FString string = Fragment; //Fragment.Replace(TEXT("\n"), TEXT(""));
+
 	if (string.Len() > 0)
 	{
 		static TArray<FString> lines;
@@ -1065,6 +1220,40 @@ void UArticyImportData::AddScriptFragment(const FString& Fragment, const bool bI
 				} // !inLiteral
 			} // GV matching
 
+			// replace "seen" and "unseen" with corresponding expressions
+			FRegexMatcher seenMatcher(seenPattern, line);
+			FRegexMatcher unseenMatcher(unseenPattern, line);
+
+			while (seenMatcher.FindNext())
+			{
+				auto start = seenMatcher.GetMatchBeginning() + offset;
+				auto end = seenMatcher.GetMatchEnding() + offset;
+				line = line.Left(start) + TEXT("seenCounter > 0") + line.Mid(end);
+				offset += strlen("seenCounter > 0") - (end - start);
+			}
+
+			offset = 0; // reset offset for unseen replacement
+
+			while (unseenMatcher.FindNext())
+			{
+				auto start = unseenMatcher.GetMatchBeginning() + offset;
+				auto end = unseenMatcher.GetMatchEnding() + offset;
+				line = line.Left(start) + TEXT("seenCounter == 0") + line.Mid(end);
+				offset += strlen("seenCounter == 0") - (end - start);
+			}
+
+			FRegexMatcher seenCounterMatcher(seenCounterPattern, line);
+
+			offset = 0; // reset offset for seen counter replacement
+
+			while (seenCounterMatcher.FindNext())
+			{
+				auto start = seenCounterMatcher.GetMatchBeginning() + offset;
+				auto end = seenCounterMatcher.GetMatchEnding() + offset;
+				line = line.Left(start) + TEXT("getSeenCounter()") + line.Mid(end);
+				offset += strlen("getSeenCounter()") - (end - start);
+			}
+
 			//re-compose the string
 			string += line;
 
@@ -1085,6 +1274,12 @@ void UArticyImportData::AddScriptFragment(const FString& Fragment, const bool bI
 	ScriptFragments.Add(frag);
 }
 
+/**
+ * Adds a child to the parent-child cache.
+ *
+ * @param Parent The parent Articy ID.
+ * @param Child The child Articy ID.
+ */
 void UArticyImportData::AddChildToParentCache(const FArticyId Parent, const FArticyId Child)
 {
 	// Changed because of the way Map.Find works. In original version there were cases, when first element wasn't added because children was declared out of the scope.
@@ -1093,6 +1288,9 @@ void UArticyImportData::AddChildToParentCache(const FArticyId Parent, const FArt
 	childrenRef.Values.AddUnique(Child);
 }
 
+/**
+ * Builds a cached version of the import data.
+ */
 void UArticyImportData::BuildCachedVersion()
 {
 	CachedData.Settings = this->Settings;
@@ -1108,6 +1306,9 @@ void UArticyImportData::BuildCachedVersion()
 	CachedData.ParentChildrenCache = this->ParentChildrenCache;
 }
 
+/**
+ * Resolves the cached version of the import data.
+ */
 void UArticyImportData::ResolveCachedVersion()
 {
 	ensure(HasCachedVersion());

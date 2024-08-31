@@ -39,61 +39,145 @@
 
 TMap<FString, FString> CodeGenerator::CachedFiles;
 
+/**
+ * @brief Retrieves the main source folder for all generated code.
+ *
+ * The source folder is determined based on the game's source directory and project name.
+ *
+ * @return The path to the source folder.
+ */
 FString CodeGenerator::GetSourceFolder()
 {
 	return FPaths::GameSourceDir() / FApp::GetProjectName() / TEXT("ArticyGenerated");
 }
 
+/**
+ * @brief Gets the filename for the generated interfaces based on import data.
+ *
+ * @param Data The import data containing project details.
+ * @return The filename for the generated interfaces.
+ */
 FString CodeGenerator::GetGeneratedInterfacesFilename(const UArticyImportData* Data)
 {
 	return Data->GetProject().TechnicalName + "Interfaces";
 }
 
+/**
+ * @brief Gets the filename for the generated types based on import data.
+ *
+ * @param Data The import data containing project details.
+ * @return The filename for the generated types.
+ */
 FString CodeGenerator::GetGeneratedTypesFilename(const UArticyImportData* Data)
 {
 	return Data->GetProject().TechnicalName + "ArticyTypes";
 }
 
+/**
+ * @brief Gets the class name for global variables based on import data.
+ *
+ * @param Data The import data containing project details.
+ * @param bOmittPrefix Whether to omit the "U" prefix.
+ * @return The class name for global variables.
+ */
 FString CodeGenerator::GetGlobalVarsClassname(const UArticyImportData* Data, const bool bOmittPrefix)
 {
 	return (bOmittPrefix ? "" : "U") + Data->GetProject().TechnicalName + "GlobalVariables";
 }
 
+/**
+ * @brief Gets the class name for a global variable namespace based on import data.
+ *
+ * @param Data The import data containing project details.
+ * @param Namespace The namespace for the global variables.
+ * @return The class name for the global variable namespace.
+ */
 FString CodeGenerator::GetGVNamespaceClassname(const UArticyImportData* Data, const FString& Namespace)
 {
 	return "U" + Data->GetProject().TechnicalName + Namespace + "Variables";
 }
 
+/**
+ * @brief Gets the class name for the database based on import data.
+ *
+ * @param Data The import data containing project details.
+ * @param bOmittPrefix Whether to omit the "U" prefix.
+ * @return The class name for the database.
+ */
 FString CodeGenerator::GetDatabaseClassname(const UArticyImportData* Data, const bool bOmittPrefix)
 {
 	return (bOmittPrefix ? "" : "U") + Data->GetProject().TechnicalName + "Database";
 }
 
+/**
+ * @brief Gets the class name for the methods provider based on import data.
+ *
+ * @param Data The import data containing project details.
+ * @param bOmittPrefix Whether to omit the "U" prefix.
+ * @return The class name for the methods provider.
+ */
 FString CodeGenerator::GetMethodsProviderClassname(const UArticyImportData* Data, const bool bOmittPrefix)
 {
 	return (bOmittPrefix ? "" : "U") + Data->GetProject().TechnicalName + "MethodsProvider";
 }
 
+/**
+ * @brief Gets the class name for expresso scripts based on import data.
+ *
+ * @param Data The import data containing project details.
+ * @param bOmittPrefix Whether to omit the "U" prefix.
+ * @return The class name for expresso scripts.
+ */
 FString CodeGenerator::GetExpressoScriptsClassname(const UArticyImportData* Data, const bool bOmittPrefix)
 {
 	return (bOmittPrefix ? "" : "U") + Data->GetProject().TechnicalName + "ExpressoScripts";
 }
 
+/**
+ * @brief Gets the class name for a feature interface based on import data.
+ *
+ * @param Data The import data containing project details.
+ * @param Feature The feature definition.
+ * @param bOmittPrefix Whether to omit the "I" prefix.
+ * @return The class name for the feature interface.
+ */
 FString CodeGenerator::GetFeatureInterfaceClassName(const UArticyImportData* Data, const FArticyTemplateFeatureDef& Feature, const bool bOmittPrefix)
 {
 	return (bOmittPrefix ? "" : "I") + Data->GetProject().TechnicalName + "ObjectWith" + Feature.GetTechnicalName() + "Feature";
 }
 
+/**
+ * @brief Gets the class name for the Articy type system based on import data.
+ *
+ * @param Data The import data containing project details.
+ * @param bOmittPrefix Whether to omit the "U" prefix.
+ * @return The class name for the Articy type system.
+ */
 FString CodeGenerator::GetArticyTypeClassname(const UArticyImportData* Data, const bool bOmittPrefix)
 {
 	return (bOmittPrefix ? "" : "U") + Data->GetProject().TechnicalName + "TypeSystem";
 }
 
+/**
+ * @brief Gets the class name for the Articy localizer system based on import data.
+ *
+ * @param Data The import data containing project details.
+ * @param bOmittPrefix Whether to omit the "U" prefix.
+ * @return The class name for the Articy localizer system.
+ */
 FString CodeGenerator::GetArticyLocalizerClassname(const UArticyImportData* Data, const bool bOmittPrefix)
 {
 	return (bOmittPrefix ? "" : "U") + Data->GetProject().TechnicalName + "LocalizerSystem";
 }
 
+/**
+ * @brief Deletes generated code files in the source folder.
+ *
+ * If the filename is empty, deletes the entire folder recursively.
+ *
+ * @param Filename The name of the file to delete, or empty to delete the whole folder.
+ * @return true if the deletion was successful, false otherwise.
+ */
 bool CodeGenerator::DeleteGeneratedCode(const FString& Filename)
 {
 	if (Filename.IsEmpty())
@@ -102,6 +186,14 @@ bool CodeGenerator::DeleteGeneratedCode(const FString& Filename)
 	return FPlatformFileManager::Get().GetPlatformFile().DeleteFile(*(GetSourceFolder() / Filename));
 }
 
+/**
+ * @brief Deletes extra generated code files that are not in the provided list.
+ *
+ * Iterates through the source folder and deletes files not matching any prefix from the generated files list.
+ *
+ * @param GeneratedFiles A list of prefixes for the generated files to keep.
+ * @return true if all non-matching files were successfully deleted, false otherwise.
+ */
 bool CodeGenerator::DeleteExtraCode(const TArray<FString>& GeneratedFiles)
 {
 	const auto& SourceFolder = GetSourceFolder();
@@ -122,7 +214,7 @@ bool CodeGenerator::DeleteExtraCode(const TArray<FString>& GeneratedFiles)
 			if (bIsDirectory)
 			{
 				// Continue searching
-				return true; 
+				return true;
 			}
 
 			FString FilePath(FilenameOrDirectory);
@@ -159,6 +251,11 @@ bool CodeGenerator::DeleteExtraCode(const TArray<FString>& GeneratedFiles)
 	return FileManager.IterateDirectory(*SourceFolder, Visitor);
 }
 
+/**
+ * @brief Caches the content of code files in the source folder.
+ *
+ * Loads the content of each file into memory for later restoration if needed.
+ */
 void CodeGenerator::CacheCodeFiles()
 {
 	TArray<FString> FileNames;
@@ -170,14 +267,22 @@ void CodeGenerator::CacheCodeFiles()
 	{
 		FileNames[i] = GetSourceFolder() / FileNames[i];
 	}
-	
-	for(int32 i=0; i < FileNames.Num(); i++)
+
+	for (int32 i = 0; i < FileNames.Num(); i++)
 	{
 		FFileHelper::LoadFileToString(FileContents[i], *FileNames[i]);
 		CachedFiles.Add(FileNames[i], FileContents[i]);
 	}
 }
 
+/**
+ * @brief Generates code files based on the provided import data.
+ *
+ * This function manages the code generation process for various components such as global variables, databases, and scripts.
+ *
+ * @param Data The import data used for code generation.
+ * @return true if code was generated successfully, false otherwise.
+ */
 bool CodeGenerator::GenerateCode(UArticyImportData* Data)
 {
 	if (!Data)
@@ -187,11 +292,9 @@ bool CodeGenerator::GenerateCode(UArticyImportData* Data)
 
 	CacheCodeFiles();
 
-	//generate all files if ObjectDefs or GVs changed
+	// Generate all files if ObjectDefs or GVs changed
 	if (Data->GetSettings().DidObjectDefsOrGVsChange())
 	{
-		//DeleteGeneratedCode();
-
 		TArray<FString> OutFiles;
 		FString OutFile;
 
@@ -203,7 +306,7 @@ bool CodeGenerator::GenerateCode(UArticyImportData* Data)
 		OutFiles.Add(OutFile);
 		ObjectDefinitionsGenerator::GenerateCode(Data, OutFile);
 		OutFiles.Add(OutFile);
-		/* generate scripts as well due to them including the generated global variables
+		/* Generate scripts as well due to them including the generated global variables
 		 * if we remove a GV set but don't regenerate expresso scripts, the resulting class won't compile */
 		ExpressoScriptsGenerator::GenerateCode(Data, OutFile);
 		OutFiles.Add(OutFile);
@@ -215,7 +318,7 @@ bool CodeGenerator::GenerateCode(UArticyImportData* Data)
 		bCodeGenerated = true;
 		DeleteExtraCode(OutFiles);
 	}
-	// if object defs of GVs didn't change, but scripts changed, regenerate only expresso scripts
+	// If object defs or GVs didn't change, but scripts changed, regenerate only expresso scripts
 	else if (Data->GetSettings().DidScriptFragmentsChange())
 	{
 		FString OutFile;
@@ -226,26 +329,39 @@ bool CodeGenerator::GenerateCode(UArticyImportData* Data)
 	return bCodeGenerated;
 }
 
+/**
+ * @brief Initiates the recompilation process for the generated code.
+ *
+ * @param Data The import data used for recompilation.
+ */
 void CodeGenerator::Recompile(UArticyImportData* Data)
 {
 	Compile(Data);
 }
 
+/**
+ * @brief Deletes generated assets based on package definitions.
+ *
+ * Removes assets not included in the import, handling invalid assets appropriately.
+ *
+ * @param PackageDefs The package definitions used to determine which assets to delete.
+ * @return true if all invalid assets were successfully deleted, false otherwise.
+ */
 bool CodeGenerator::DeleteGeneratedAssets(const FArticyPackageDefs& PackageDefs)
 {
 	FAssetRegistryModule& AssetRegistry = FModuleManager::Get().GetModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	TArray<FAssetData> OutAssets;
 	AssetRegistry.Get().GetAssetsByPath(FName(*ArticyHelpers::GetArticyGeneratedFolder()), OutAssets, true, false);
-	
+
 	TArray<UObject*> ExistingAssets;
 	TArray<FAssetData> InvalidAssets;
-	for(FAssetData Data : OutAssets)
+	for (FAssetData Data : OutAssets)
 	{
 		if (Data.IsValid())
 		{
 			UObject* Asset = Data.GetAsset();
-			// if the class is missing (generated code deleted for example), the asset data will be valid but return a nullptr
-			if(!Asset)
+			// If the class is missing (generated code deleted for example), the asset data will be valid but return a nullptr
+			if (!Asset)
 			{
 				InvalidAssets.Add(Data);
 				continue;
@@ -272,34 +388,42 @@ bool CodeGenerator::DeleteGeneratedAssets(const FArticyPackageDefs& PackageDefs)
 	}
 
 	bool bInvalidDeletionSuccess = true;
-	if(InvalidAssets.Num() > 0)
+	if (InvalidAssets.Num() > 0)
 	{
 		bInvalidDeletionSuccess = InvalidAssets.Num() == ObjectTools::DeleteAssets(InvalidAssets, false);
 	}
-	
-	if(ExistingAssets.Num() > 0)
+
+	if (ExistingAssets.Num() > 0)
 	{
 		return ObjectTools::ForceDeleteObjects(ExistingAssets, false) > 0 && bInvalidDeletionSuccess;
 	}
 
-	// returns true if there is nothing to delete to not trigger the ensure
+	// Returns true if there is nothing to delete to not trigger the ensure
 	return true;
 }
 
+/**
+ * @brief Renames generated assets based on package definitions.
+ *
+ * This function handles renaming of package assets when their names have changed.
+ *
+ * @param PackageDefs The package definitions containing the new asset names.
+ * @return true if all renaming operations succeeded, false otherwise.
+ */
 bool CodeGenerator::RenameGeneratedAssets(const FArticyPackageDefs& PackageDefs)
 {
 	const FAssetRegistryModule& AssetRegistry = FModuleManager::Get().GetModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	TArray<FAssetData> OutAssets;
 	AssetRegistry.Get().GetAssetsByPath(FName(*ArticyHelpers::GetArticyGeneratedFolder()), OutAssets, true, false);
-	
-	for(FAssetData Data : OutAssets)
+
+	for (FAssetData Data : OutAssets)
 	{
 		if (Data.IsValid())
 		{
 			UObject* Asset = Data.GetAsset();
-			
+
 			// Skip invalid assets
-			if(!Asset)
+			if (!Asset)
 			{
 				continue;
 			}
@@ -313,7 +437,7 @@ bool CodeGenerator::RenameGeneratedAssets(const FArticyPackageDefs& PackageDefs)
 					{
 						continue;
 					}
-					
+
 					// Only check packages with name changes
 					if (PackageDef.GetName().Equals(PackageDef.GetPreviousName()))
 					{
@@ -336,10 +460,17 @@ bool CodeGenerator::RenameGeneratedAssets(const FArticyPackageDefs& PackageDefs)
 		}
 	}
 
-	// returns true if there are no failures
+	// Returns true if there are no failures
 	return true;
 }
 
+/**
+ * @brief Compiles the generated code using the hot-reload interface.
+ *
+ * This function handles the compilation process, including handling any failures.
+ *
+ * @param Data The import data used for compilation.
+ */
 void CodeGenerator::Compile(UArticyImportData* Data)
 {
 #if WITH_LIVE_CODING && ENGINE_MAJOR_VERSION == 4
@@ -371,7 +502,7 @@ void CodeGenerator::Compile(UArticyImportData* Data)
 	}
 
 	static FDelegateHandle AfterCompileLambda;
-	if(AfterCompileLambda.IsValid())
+	if (AfterCompileLambda.IsValid())
 	{
 #if ENGINE_MAJOR_VERSION >= 5
 		FCoreUObjectDelegates::ReloadCompleteDelegate.Remove(AfterCompileLambda);
@@ -383,99 +514,106 @@ void CodeGenerator::Compile(UArticyImportData* Data)
 
 #if ENGINE_MAJOR_VERSION >= 5
 	AfterCompileLambda = FCoreUObjectDelegates::ReloadCompleteDelegate.AddLambda([=](EReloadCompleteReason ReloadCompleteReason)
-	{
-		OnCompiled(Data);
-	});
+		{
+			OnCompiled(Data);
+		});
 #else
 	AfterCompileLambda = IHotReloadModule::Get().OnHotReload().AddLambda([=](bool bWasTriggeredAutomatically)
-	{
-		OnCompiled(Data);
-	});
+		{
+			OnCompiled(Data);
+		});
 #endif
 
 
-	// register a lambda to handle failure in code generation (compilation failed due to generated articy code)
-	// detection of faulty articy code is a heuristic and not optimal!
+	// Register a lambda to handle failure in code generation (compilation failed due to generated Articy code)
+	// Detection of faulty Articy code is a heuristic and not optimal!
 	static FDelegateHandle RestoreCachedVersionHandle;
-	if(RestoreCachedVersionHandle.IsValid())
+	if (RestoreCachedVersionHandle.IsValid())
 	{
 		IHotReloadModule::Get().OnModuleCompilerFinished().Remove(RestoreCachedVersionHandle);
 		RestoreCachedVersionHandle.Reset();
 	}
 	RestoreCachedVersionHandle = IHotReloadModule::Get().OnModuleCompilerFinished().AddLambda([=](const FString& Log, ECompilationResult::Type Type, bool bSuccess)
-	{
-		if (Type == ECompilationResult::Succeeded || Type == ECompilationResult::UpToDate)
 		{
-			// do nothing in case compilation succeeded without problems
-		}
-		else if(Type == ECompilationResult::OtherCompilationError)
-		{
-			/** if compile error is due to articy, restore the previous data */
-			const bool bErrorInGeneratedCode = ParseForError(Log);
-			
-			if (bErrorInGeneratedCode)
+			if (Type == ECompilationResult::Succeeded || Type == ECompilationResult::UpToDate)
+			{
+				// Do nothing in case compilation succeeded without problems
+			}
+			else if (Type == ECompilationResult::OtherCompilationError)
+			{
+				/** If compile error is due to Articy, restore the previous data */
+				const bool bErrorInGeneratedCode = ParseForError(Log);
+
+				if (bErrorInGeneratedCode)
+				{
+					const bool bCanContinue = RestorePreviousImport(Data, true, Type);
+					if (bCanContinue)
+					{
+						OnCompiled(Data);
+					}
+				}
+			}
+			// In case the compilation was neither successful nor had compile errors, revert just to be safe
+			else
 			{
 				const bool bCanContinue = RestorePreviousImport(Data, true, Type);
-				if(bCanContinue)
+				if (bCanContinue)
 				{
 					OnCompiled(Data);
 				}
 			}
-		}
-		// in case the compilation was neither successful nor had compile errors, revert just to be safe
-		else
-		{
-			const bool bCanContinue = RestorePreviousImport(Data, true, Type);
-			if (bCanContinue)
-			{
-				OnCompiled(Data);
-			}
-		}
-	});
-	
+		});
+
 	if (!bWaitingForOtherCompile)
 	{
 		HotReloadSupport.DoHotReloadFromEditor(EHotReloadFlags::None /*async*/);
 	}
 }
 
+/**
+ * @brief Generates assets based on the provided import data.
+ *
+ * This function handles asset generation, including handling renaming and deletion of generated assets.
+ *
+ * @param Data The import data used for asset generation.
+ */
 void CodeGenerator::GenerateAssets(UArticyImportData* Data)
 {
 	TGuardValue<bool> GuardIsInitialLoad(GIsInitialLoad, false);
 
 	ensure(Data);
-	
-	//compiling is done!
-	//check if UArticyBaseGlobalVariables can be found, otherwise something went wrong!
+
+	// Compiling is done!
+	// Check if UArticyBaseGlobalVariables can be found, otherwise something went wrong!
 	const auto ClassName = GetGlobalVarsClassname(Data, true);
 	auto FullClassName = FString::Printf(TEXT("Class'/Script/%s.%s'"), FApp::GetProjectName(), *ClassName);
 	if (!ConstructorHelpersInternal::FindOrLoadClass(FullClassName, UArticyGlobalVariables::StaticClass()))
 	{
 		if (!ensure(ConstructorHelpersInternal::FindOrLoadClass(FullClassName, UArticyGlobalVariables::StaticClass())))
-		UE_LOG(LogArticyEditor, Error, TEXT("Could not find generated global variables class after compile!"));
+			UE_LOG(LogArticyEditor, Error, TEXT("Could not find generated global variables class after compile!"));
 	}
 
-	if(!ensureAlwaysMsgf(RenameGeneratedAssets(Data->GetPackageDefs()),
+	if (!ensureAlwaysMsgf(RenameGeneratedAssets(Data->GetPackageDefs()),
 		TEXT("RenameGeneratedAssets() has failed. The Articy X Importer can not proceed without\n"
-		"being able to rename previously generated assets for packages with new names.\n"
-		"Please make sure the Generated folder in ArticyContent is editable.")))
+			"being able to rename previously generated assets for packages with new names.\n"
+			"Please make sure the Generated folder in ArticyContent is editable.")))
 	{
 		// Failed to rename generated assets. We can't continue
 		return;
 	}
-	
-	if(!ensureAlwaysMsgf(DeleteGeneratedAssets(Data->GetPackageDefs()), 
+
+	if (!ensureAlwaysMsgf(DeleteGeneratedAssets(Data->GetPackageDefs()),
 		TEXT("DeletedGeneratedAssets() has failed. The Articy X Importer can not proceed without\n"
-		"being able to delete the previously generated assets to replace them with new ones.\n"
-		"Please make sure the Generated folder in ArticyContent is editable.")))
+			"being able to delete the previously generated assets to replace them with new ones.\n"
+			"Please make sure the Generated folder in ArticyContent is editable.")))
 	{
 		// Failed to delete generated assets. We can't continue
 		return;
 	}
 
-	//generate the global variables asset
+	// Generate the global variables asset
 	GlobalVarsGenerator::GenerateAsset(Data);
-	//generate the database asset
+	// Generate the database asset
 	UArticyDatabase* ArticyDatabase = DatabaseGenerator::GenerateAsset(Data);
 	if (!ensureAlwaysMsgf(ArticyDatabase != nullptr, TEXT("Could not create ArticyDatabase asset!")))
 	{
@@ -486,17 +624,17 @@ void CodeGenerator::GenerateAssets(UArticyImportData* Data)
 	}
 	ArticyTypeGenerator::GenerateAsset(Data);
 
-	//generate assets for all the imported objects
+	// Generate assets for all the imported objects
 	PackagesGenerator::GenerateAssets(Data);
 	ArticyDatabase->SetLoadedPackages(Data->GetPackagesDirect());
 
-	//gather all articy assets to save them
+	// Gather all Articy assets to save them
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	TArray<FAssetData> GeneratedAssets;
 	AssetRegistryModule.Get().GetAssetsByPath(FName(*ArticyHelpers::GetArticyGeneratedFolder()), GeneratedAssets, true);
 
 	TArray<UPackage*> PackagesToSave;
-	
+
 	PackagesToSave.Add(Data->GetOutermost());
 	for (FAssetData AssetData : GeneratedAssets)
 	{
@@ -520,26 +658,39 @@ void CodeGenerator::GenerateAssets(UArticyImportData* Data)
 
 	FArticyEditorModule::Get().OnAssetsGenerated.Broadcast();
 
-	// update the internal save state of the package settings (add settings for new packages, remove outdated package settings, restore previous settings for still existing packages)
+	// Update the internal save state of the package settings (add settings for new packages, remove outdated package settings, restore previous settings for still existing packages)
 	UArticyPluginSettings* ArticyPluginSettings = GetMutableDefault<UArticyPluginSettings>();
 	ArticyPluginSettings->UpdatePackageSettings();
 }
 
+/**
+ * @brief Callback function called when compilation is completed.
+ *
+ * This function updates the settings and broadcasts a notification for completed compilation.
+ *
+ * @param Data The import data used for compilation.
+ */
 void CodeGenerator::OnCompiled(UArticyImportData* Data)
 {
 	Data->GetSettings().SetObjectDefinitionsRebuilt();
 	Data->GetSettings().SetScriptFragmentsRebuilt();
-	// broadcast that compilation has finished. ArticyImportData will then generate the assets and perform post import operations
+	// Broadcast that compilation has finished. ArticyImportData will then generate the assets and perform post import operations
 	FArticyEditorModule::Get().OnCompilationFinished.Broadcast(Data);
 }
 
+/**
+ * @brief Parses a log to detect errors related to Articy-generated code.
+ *
+ * @param Log The compilation log to parse.
+ * @return true if errors related to Articy-generated code were found, false otherwise.
+ */
 bool CodeGenerator::ParseForError(const FString& Log)
 {
 	TArray<FString> Lines;
-	// parsing into individual FStrings for each line. Using \n as delimiter, should cover both Mac OSX and Windows
+	// Parsing into individual FStrings for each line. Using \n as delimiter, should cover both Mac OSX and Windows
 	Log.ParseIntoArray(Lines, TEXT("\n"));
 
-	// heuristic: error due to articy?
+	// Heuristic: error due to Articy?
 	bool bErrorInGeneratedCode = false;
 	for (const FString& Line : Lines)
 	{
@@ -553,6 +704,16 @@ bool CodeGenerator::ParseForError(const FString& Log)
 	return bErrorInGeneratedCode;
 }
 
+/**
+ * @brief Restores the previous import session, including import data and code.
+ *
+ * This function attempts to restore cached import data and generated files.
+ *
+ * @param Data The import data to restore.
+ * @param bNotifyUser Whether to notify the user about the restoration process.
+ * @param Reason The reason for the restoration (e.g., compilation error).
+ * @return true if the restoration was successful, false otherwise.
+ */
 bool CodeGenerator::RestorePreviousImport(UArticyImportData* Data, const bool& bNotifyUser, ECompilationResult::Type Reason)
 {
 	ensure(Data);
@@ -560,7 +721,7 @@ bool CodeGenerator::RestorePreviousImport(UArticyImportData* Data, const bool& b
 	const FText ArticyImportErrorText = FText::FromString(TEXT("Articy import error"));
 	FText ReasonForRestoreText = FText::FromString(ECompilationResult::ToString(Reason));
 
-	if(!Data->HasCachedVersion())
+	if (!Data->HasCachedVersion())
 	{
 		const FText CacheNotAvailableText = FText::Format(LOCTEXT("NoCacheAvailable", "Aborting import process. No cache available to restore. Deleting import asset but leaving generated code intact. Please delete manually in Source/ArticyGenerated if necessary and rebuild. Reason: {0}."), ReasonForRestoreText);
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 24
@@ -571,33 +732,33 @@ bool CodeGenerator::RestorePreviousImport(UArticyImportData* Data, const bool& b
 		EAppReturnType::Type ReturnType = FMessageDialog::Open(EAppMsgType::Ok, CacheNotAvailableText, &ArticyImportErrorText);
 #endif
 		ObjectTools::DeleteAssets({ Data }, false);
-		
+
 		return false;
 	}
-	
-	// transfer the cached data into the current one
+
+	// Transfer the cached data into the current one
 	Data->ResolveCachedVersion();
 
-	// attempt to restore all generated files
+	// Attempt to restore all generated files
 	const bool bFilesRestored = RestoreCachedFiles();
 
 
 	// Reason is "-1" for cancelled for some reason
-	if(Reason == -1)
+	if (Reason == -1)
 	{
 		ReasonForRestoreText = FText::FromString(TEXT("Compilation cancelled"));
 	}
-	else if(Reason == ECompilationResult::OtherCompilationError)
+	else if (Reason == ECompilationResult::OtherCompilationError)
 	{
-		ReasonForRestoreText = FText::FromString(TEXT("Error in compiled articy code"));
+		ReasonForRestoreText = FText::FromString(TEXT("Error in compiled Articy code"));
 	}
 
-	// if we succeeded, tell the user and call OnCompiled - which will then create the assets
+	// If we succeeded, tell the user and call OnCompiled - which will then create the assets
 	if (bFilesRestored)
 	{
 		if (bNotifyUser)
 		{
-			const FText CacheRestoredText = FText::Format(LOCTEXT("ImportDataCacheRestoredText", "Restored previously generated articy code. Reason: {0}. Continuing import with last valid state."), ReasonForRestoreText);
+			const FText CacheRestoredText = FText::Format(LOCTEXT("ImportDataCacheRestoredText", "Restored previously generated Articy code. Reason: {0}. Continuing import with last valid state."), ReasonForRestoreText);
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 24
 			EAppReturnType::Type ReturnType = OpenMsgDlgInt(EAppMsgType::Ok, CacheRestoredText, ArticyImportErrorText);
 #elif ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
@@ -610,12 +771,12 @@ bool CodeGenerator::RestorePreviousImport(UArticyImportData* Data, const bool& b
 	}
 	else
 	{
-		// if there were no previous files or not all files could be restored, delete them instead
+		// If there were no previous files or not all files could be restored, delete them instead
 		if (DeleteGeneratedCode())
 		{
 			if (bNotifyUser)
 			{
-				const FText CacheDeletedText = FText::Format(LOCTEXT("ImportDataCacheDeletedText", "Deleted generated articy code. Reason: {0}. Aborting import process."), ReasonForRestoreText);
+				const FText CacheDeletedText = FText::Format(LOCTEXT("ImportDataCacheDeletedText", "Deleted generated Articy code. Reason: {0}. Aborting import process."), ReasonForRestoreText);
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 24
 				EAppReturnType::Type ReturnType = OpenMsgDlgInt(EAppMsgType::Ok, CacheDeletedText, ArticyImportErrorText);
 #elif ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
@@ -625,12 +786,12 @@ bool CodeGenerator::RestorePreviousImport(UArticyImportData* Data, const bool& b
 #endif
 			}
 		}
-		// if deletion didn't work for some reason, notify the user
+		// If deletion didn't work for some reason, notify the user
 		else
 		{
 			if (bNotifyUser)
 			{
-				const FText CacheDeletionFailedText = FText::Format(LOCTEXT("ImportDataCacheDeletionFailedText", "Tried to delete generated articy code. Reason: {0}. Failed to delete. Aborting import process."), ReasonForRestoreText);
+				const FText CacheDeletionFailedText = FText::Format(LOCTEXT("ImportDataCacheDeletionFailedText", "Tried to delete generated Articy code. Reason: {0}. Failed to delete. Aborting import process."), ReasonForRestoreText);
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 24
 				EAppReturnType::Type ReturnType = OpenMsgDlgInt(EAppMsgType::Ok, CacheDeletionFailedText, ArticyImportErrorText);
 #elif ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
@@ -645,11 +806,18 @@ bool CodeGenerator::RestorePreviousImport(UArticyImportData* Data, const bool& b
 	return false;
 }
 
+/**
+ * @brief Restores cached files from previous import sessions.
+ *
+ * This function attempts to write the cached file content back to disk.
+ *
+ * @return true if all files were restored successfully, false otherwise.
+ */
 bool CodeGenerator::RestoreCachedFiles()
 {
 	bool bFilesRestored = CachedFiles.Num() > 0 ? true : false;
 
-	for(auto& CachedFile : CachedFiles)
+	for (auto& CachedFile : CachedFiles)
 	{
 		bFilesRestored = bFilesRestored && FFileHelper::SaveStringToFile(CachedFile.Value, *CachedFile.Key);
 	}

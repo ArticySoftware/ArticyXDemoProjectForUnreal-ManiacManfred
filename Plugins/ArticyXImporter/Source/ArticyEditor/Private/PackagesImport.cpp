@@ -21,6 +21,11 @@
 
 #define STRINGIFY(x) #x
 
+/**
+ * Imports model definition data from a JSON object.
+ *
+ * @param JsonModel A shared pointer to the JSON object containing the model definition.
+ */
 void FArticyModelDef::ImportFromJson(const TSharedPtr<FJsonObject> JsonModel)
 {
 	JSON_TRY_FNAME(JsonModel, Type);
@@ -33,7 +38,7 @@ void FArticyModelDef::ImportFromJson(const TSharedPtr<FJsonObject> JsonModel)
 	{
 		PropertiesJsonString = "";
 		TSharedPtr<FJsonObject> Properties = JsonModel->GetObjectField(TEXT("Properties"));
-		if(Properties.IsValid())
+		if (Properties.IsValid())
 		{
 			JSON_TRY_STRING(Properties, TechnicalName);
 			JSON_TRY_HEX_ID(Properties, Id);
@@ -43,7 +48,7 @@ void FArticyModelDef::ImportFromJson(const TSharedPtr<FJsonObject> JsonModel)
 			Properties->TryGetStringField(TEXT("Id"), stringId);
 			NameAndId = FString::Printf(TEXT("%s_%s"), *TechnicalName, *stringId);
 
-			//serialize the Properties to string, using the condensed writer to save memory
+			// Serialize the Properties to string, using the condensed writer to save memory
 			TSharedRef< TJsonWriter<TCHAR, TCondensedJsonPrintPolicy<TCHAR>> > Writer = TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&PropertiesJsonString);
 			FJsonSerializer::Serialize(Properties.ToSharedRef(), Writer);
 		}
@@ -52,7 +57,7 @@ void FArticyModelDef::ImportFromJson(const TSharedPtr<FJsonObject> JsonModel)
 	{
 		TemplateJsonString = "";
 		const TSharedPtr<FJsonObject>* Template;
-		if(JsonModel->TryGetObjectField(TEXT("Template"), Template))
+		if (JsonModel->TryGetObjectField(TEXT("Template"), Template))
 		{
 			TSharedRef< TJsonWriter<TCHAR, TCondensedJsonPrintPolicy<TCHAR>> > Writer = TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&TemplateJsonString);
 			FJsonSerializer::Serialize(Template->ToSharedRef(), Writer);
@@ -60,19 +65,30 @@ void FArticyModelDef::ImportFromJson(const TSharedPtr<FJsonObject> JsonModel)
 	}
 }
 
+/**
+ * Gathers scripts from the model definition and adds them to the ArticyImportData.
+ *
+ * @param Data A pointer to the UArticyImportData object.
+ */
 void FArticyModelDef::GatherScripts(UArticyImportData* Data) const
 {
 	Data->GetObjectDefs().GatherScripts(*this, Data);
 }
 
+/**
+ * Generates a sub-asset from the model definition.
+ *
+ * @param Data A pointer to the UArticyImportData object.
+ * @param Outer The outer object for the sub-asset.
+ * @return A pointer to the generated UArticyObject sub-asset.
+ */
 UArticyObject* FArticyModelDef::GenerateSubAsset(const UArticyImportData* Data, UObject* Outer) const
 {
-	//the class is found by taking the CPP name and removing the first character
+	// The class is found by taking the CPP name and removing the first character
 	auto className = Data->GetObjectDefs().GetCppType(Type, Data, false);
 	className.RemoveAt(0);
 
-	//generate the asset
-
+	// Generate the asset
 	auto fullClassName = FString::Printf(TEXT("Class'/Script/%s.%s'"), FApp::GetProjectName(), *className);
 	auto uclass = ConstructorHelpersInternal::FindOrLoadClass(fullClassName, UArticyObject::StaticClass());
 	if (uclass)
@@ -84,9 +100,7 @@ UArticyObject* FArticyModelDef::GenerateSubAsset(const UArticyImportData* Data, 
 			obj->Initialize();
 			Data->GetObjectDefs().InitializeModel(obj, *this, Data, Outer->GetName());
 
-			//SAVE!!
-
-			//Packing->AddAsset(Package, obj);
+			// SAVE!!
 			obj->MarkPackageDirty();
 		}
 
@@ -95,34 +109,50 @@ UArticyObject* FArticyModelDef::GenerateSubAsset(const UArticyImportData* Data, 
 	return nullptr;
 }
 
+/**
+ * Gets the properties JSON object from the cached properties JSON string.
+ *
+ * @return A shared pointer to the properties JSON object.
+ */
 TSharedPtr<FJsonObject> FArticyModelDef::GetPropertiesJson() const
 {
-	if(!CachedPropertiesJson.IsValid())
+	if (!CachedPropertiesJson.IsValid())
 	{
 		TSharedRef<TJsonReader<TCHAR>> JsonReader = TJsonReaderFactory<TCHAR>::Create(PropertiesJsonString);
 		FJsonSerializer::Deserialize(JsonReader, CachedPropertiesJson);
 
-		if(!CachedPropertiesJson.IsValid())
+		if (!CachedPropertiesJson.IsValid())
 			CachedPropertiesJson = MakeShareable(new FJsonObject);
 	}
 
 	return CachedPropertiesJson;
 }
 
+/**
+ * Gets the templates JSON object from the cached templates JSON string.
+ *
+ * @return A shared pointer to the templates JSON object.
+ */
 TSharedPtr<FJsonObject> FArticyModelDef::GetTemplatesJson() const
 {
-	if(!CachedTemplateJson.IsValid())
+	if (!CachedTemplateJson.IsValid())
 	{
 		TSharedRef<TJsonReader<TCHAR>> JsonReader = TJsonReaderFactory<TCHAR>::Create(TemplateJsonString);
 		FJsonSerializer::Deserialize(JsonReader, CachedTemplateJson);
 
-		if(!CachedTemplateJson.IsValid())
+		if (!CachedTemplateJson.IsValid())
 			CachedTemplateJson = MakeShareable(new FJsonObject);
 	}
 
 	return CachedTemplateJson;
 }
 
+/**
+ * Converts a category string to an EArticyAssetCategory enum value.
+ *
+ * @param Category The category string.
+ * @return The corresponding EArticyAssetCategory value.
+ */
 EArticyAssetCategory FArticyModelDef::GetAssetCategoryFromString(const FString Category)
 {
 	if (Category == "Image") return EArticyAssetCategory::Image;
@@ -136,9 +166,15 @@ EArticyAssetCategory FArticyModelDef::GetAssetCategoryFromString(const FString C
 
 //---------------------------------------------------------------------------//
 
+/**
+ * Imports package definition data from a JSON object.
+ *
+ * @param Archive A reference to the ArticyArchiveReader object.
+ * @param JsonPackage A shared pointer to the JSON object containing the package definition.
+ */
 void FArticyPackageDef::ImportFromJson(const UArticyArchiveReader& Archive, const TSharedPtr<FJsonObject>& JsonPackage)
 {
-	if(!JsonPackage.IsValid())
+	if (!JsonPackage.IsValid())
 		return;
 
 	JSON_TRY_HEX_ID(JsonPackage, Id);
@@ -168,7 +204,7 @@ void FArticyPackageDef::ImportFromJson(const UArticyArchiveReader& Archive, cons
 		JSON_TRY_ARRAY(Objects, Objects,
 		{
 			auto innerObj = item->AsObject();
-			if(innerObj.IsValid())
+			if (innerObj.IsValid())
 			{
 				FArticyModelDef model;
 				model.ImportFromJson(innerObj);
@@ -188,15 +224,26 @@ void FArticyPackageDef::ImportFromJson(const UArticyArchiveReader& Archive, cons
 
 		Texts.Reset();
 		GatherText(TextData);
-	});
+		});
 }
 
+/**
+ * Gathers scripts from the package definition and adds them to the ArticyImportData.
+ *
+ * @param Data A pointer to the UArticyImportData object.
+ */
 void FArticyPackageDef::GatherScripts(UArticyImportData* Data) const
 {
-	for(const auto& model : Models)
+	for (const auto& model : Models)
 		Data->GetObjectDefs().GatherScripts(model, Data);
 }
 
+/**
+ * Generates a package asset from the package definition.
+ *
+ * @param Data A pointer to the UArticyImportData object.
+ * @return A pointer to the generated UArticyPackage asset.
+ */
 UArticyPackage* FArticyPackageDef::GeneratePackageAsset(UArticyImportData* Data) const
 {
 	const FString PackageName = GetFolder();
@@ -220,7 +267,7 @@ UArticyPackage* FArticyPackageDef::GeneratePackageAsset(UArticyImportData* Data)
 	ArticyPackage->Description = Description;
 	ArticyPackage->bIsDefaultPackage = IsDefaultPackage;
 
-	// create all contained subassets and register them in the package
+	// Create all contained subassets and register them in the package
 	for (const auto model : Models)
 	{
 		UArticyObject* asset = model.GenerateSubAsset(Data, ArticyPackage); //MM_CHANGE
@@ -232,19 +279,29 @@ UArticyPackage* FArticyPackageDef::GeneratePackageAsset(UArticyImportData* Data)
 			Data->AddChildToParentCache(model.GetParent(), model.GetId());
 		}
 	}
-	
+
 	FAssetRegistryModule::AssetCreated(ArticyPackage);
 
 	AssetPackage->MarkPackageDirty();
 
-	return ArticyPackage;	
+	return ArticyPackage;
 }
 
+/**
+ * Gets the folder path for the package.
+ *
+ * @return The folder path as a string.
+ */
 FString FArticyPackageDef::GetFolder() const
 {
 	return (FString(TEXT("Packages")) / Name).Replace(TEXT(" "), TEXT("_"));
 }
 
+/**
+ * Gets the folder name for the package.
+ *
+ * @return The folder name as a string.
+ */
 FString FArticyPackageDef::GetFolderName() const
 {
 	int32 pathCutOffIndex = INDEX_NONE;
@@ -262,33 +319,57 @@ FString FArticyPackageDef::GetFolderName() const
 	}
 }
 
+/**
+ * Gets the name of the package.
+ *
+ * @return The package name as a string.
+ */
 const FString FArticyPackageDef::GetName() const
 {
 	return Name;
 }
 
+/**
+ * Gets the previous name of the package.
+ *
+ * @return The previous package name as a string.
+ */
 const FString FArticyPackageDef::GetPreviousName() const
 {
 	if (PreviousName.Len() == 0)
 	{
 		return Name;
 	}
-	
+
 	return PreviousName;
 }
 
+/**
+ * Sets the name of the package.
+ *
+ * @param NewName The new name for the package.
+ */
 void FArticyPackageDef::SetName(const FString& NewName)
 {
 	PreviousName = Name;
 	Name = NewName;
 }
 
-
+/**
+ * Gets the ID of the package.
+ *
+ * @return The package ID as an FArticyId.
+ */
 FArticyId FArticyPackageDef::GetId() const
 {
 	return Id;
 }
 
+/**
+ * Checks if the package is included.
+ *
+ * @return True if the package is included, false otherwise.
+ */
 bool FArticyPackageDef::GetIsIncluded() const
 {
 	return IsIncluded;
@@ -296,12 +377,19 @@ bool FArticyPackageDef::GetIsIncluded() const
 
 //---------------------------------------------------------------------------//
 
+/**
+ * Imports package definitions from a JSON array.
+ *
+ * @param Archive A reference to the ArticyArchiveReader object.
+ * @param Json A pointer to the JSON array containing the package definitions.
+ * @param Settings A reference to the FADISettings object.
+ */
 void FArticyPackageDefs::ImportFromJson(
 	const UArticyArchiveReader& Archive,
 	const TArray<TSharedPtr<FJsonValue>>* Json,
 	FADISettings& Settings)
 {
-	if(!Json)
+	if (!Json)
 		return;
 
 	TSet<FString> OldPackageScriptHashes;
@@ -311,7 +399,7 @@ void FArticyPackageDefs::ImportFromJson(
 	for (auto& ExistingPackage : Packages)
 	{
 		OldPackageScriptHashes.Add(ExistingPackage.GetScriptFragmentHash());
-		
+
 		bool bExistingPackageFound = false;
 
 		// Iterate over new package list
@@ -331,7 +419,7 @@ void FArticyPackageDefs::ImportFromJson(
 
 				const FString& OldName = ExistingPackage.GetName();
 				const FString& NewName = package.GetName();
-				
+
 				// If IsIncluded is set on the new package, replace the existing package
 				if (package.GetIsIncluded())
 				{
@@ -340,11 +428,11 @@ void FArticyPackageDefs::ImportFromJson(
 					// Useful if we ever decide to rename included packages 
 					ExistingPackage.SetName(OldName);
 				}
-				
+
 				if (!NewName.Equals(OldName))
 				{
 					// Name has changed
-					ExistingPackage.SetName(NewName);					
+					ExistingPackage.SetName(NewName);
 				}
 
 				break;
@@ -373,7 +461,7 @@ void FArticyPackageDefs::ImportFromJson(
 
 		FArticyPackageDef package;
 		package.ImportFromJson(Archive, obj);
-		
+
 		bool bExistingPackageFound = false;
 
 		// Check if package already exists in the Packages array
@@ -397,7 +485,7 @@ void FArticyPackageDefs::ImportFromJson(
 	if (OldPackageScriptHashes.Num() == Packages.Num())
 	{
 		bool bScriptFragmentsChanged = false;
-		
+
 		for (auto& Package : Packages)
 		{
 			if (!OldPackageScriptHashes.Contains(Package.GetScriptFragmentHash()))
@@ -413,15 +501,22 @@ void FArticyPackageDefs::ImportFromJson(
 			return;
 		}
 	}
-	
+
 	Settings.SetScriptFragmentsNeedRebuild();
 }
 
+/**
+ * Validates the import of package definitions from a JSON array.
+ *
+ * @param Archive A reference to the ArticyArchiveReader object.
+ * @param Json A pointer to the JSON array containing the package definitions.
+ * @return True if the import is valid, false otherwise.
+ */
 bool FArticyPackageDefs::ValidateImport(
 	const UArticyArchiveReader& Archive,
 	const TArray<TSharedPtr<FJsonValue>>* Json)
 {
-	if(!Json)
+	if (!Json)
 		return false;
 
 	// Iterate over existing packages
@@ -478,7 +573,7 @@ bool FArticyPackageDefs::ValidateImport(
 			continue;
 
 		bool bPackageDataFound = false;
-		
+
 		// Check if package already exists in the Packages array
 		for (const auto& ExistingPackage : Packages)
 		{
@@ -504,12 +599,22 @@ bool FArticyPackageDefs::ValidateImport(
 	return true;
 }
 
+/**
+ * Gathers scripts from all package definitions and adds them to the ArticyImportData.
+ *
+ * @param Data A pointer to the UArticyImportData object.
+ */
 void FArticyPackageDefs::GatherScripts(UArticyImportData* Data) const
 {
-	for(const auto& pack : Packages)
+	for (const auto& pack : Packages)
 		pack.GatherScripts(Data);
 }
 
+/**
+ * Gathers text data from a JSON object and adds it to the package definition.
+ *
+ * @param Json A shared pointer to the JSON object containing the text data.
+ */
 void FArticyPackageDef::GatherText(const TSharedPtr<FJsonObject>& Json)
 {
 	for (auto JsonValue = Json->Values.CreateConstIterator(); JsonValue; ++JsonValue)
@@ -523,28 +628,44 @@ void FArticyPackageDef::GatherText(const TSharedPtr<FJsonObject>& Json)
 	}
 }
 
+/**
+ * Gets the texts map from the package definition.
+ *
+ * @return A map of text data.
+ */
 TMap<FString, FArticyTexts> FArticyPackageDef::GetTexts() const
 {
 	return Texts;
 }
 
+/**
+ * Gets the texts map from a specific package definition.
+ *
+ * @param Package The package definition to retrieve texts from.
+ * @return A map of text data.
+ */
 TMap<FString, FArticyTexts> FArticyPackageDefs::GetTexts(const FArticyPackageDef& Package)
 {
 	return Package.GetTexts();
 }
 
+/**
+ * Generates assets for all package definitions and stores them in the ArticyImportData.
+ *
+ * @param Data A pointer to the UArticyImportData object.
+ */
 void FArticyPackageDefs::GenerateAssets(UArticyImportData* Data) const
 {
 	auto& ArticyPackages = Data->GetPackages();
 
 	ArticyPackages.Reset(Packages.Num());
-	
+
 	for (auto pack : Packages)
 	{
 		ArticyPackages.Add(pack.GeneratePackageAsset(Data));
 	}
 
-	//store gathered information about who has which children in generated assets
+	// Store gathered information about who has which children in generated assets
 	auto parentChildrenCache = Data->GetParentChildrenCache();
 	const auto childrenProp = FName{ TEXT("Children") };
 	for (auto pack : ArticyPackages)
@@ -555,8 +676,8 @@ void FArticyPackageDefs::GenerateAssets(UArticyImportData* Data) const
 			{
 				if (auto children = parentChildrenCache.Find(articyObj->GetId()))
 				{
-					// if the setting is enabled, try to sort. Will only work with exported position properties.
-					if(GetDefault<UArticyPluginSettings>()->bSortChildrenAtGeneration)
+					// If the setting is enabled, try to sort. Will only work with exported position properties.
+					if (GetDefault<UArticyPluginSettings>()->bSortChildrenAtGeneration)
 					{
 						children->Values.Sort(ArticyImporterHelpers::FCompareArticyNodeXLocation());
 					}
@@ -567,10 +688,15 @@ void FArticyPackageDefs::GenerateAssets(UArticyImportData* Data) const
 	}
 }
 
+/**
+ * Gets a set of package names from the package definitions.
+ *
+ * @return A set of package names.
+ */
 TSet<FString> FArticyPackageDefs::GetPackageNames() const
 {
 	TSet<FString> outArray;
-	for(FArticyPackageDef def : Packages)
+	for (FArticyPackageDef def : Packages)
 	{
 		outArray.Add(def.GetName());
 	}
@@ -578,16 +704,29 @@ TSet<FString> FArticyPackageDefs::GetPackageNames() const
 	return outArray;
 }
 
+/**
+ * Gets an array of package definitions.
+ *
+ * @return An array of package definitions.
+ */
 TArray<FArticyPackageDef> FArticyPackageDefs::GetPackages() const
 {
 	return Packages;
 }
 
+/**
+ * Resets the packages array, clearing all package definitions.
+ */
 void FArticyPackageDefs::ResetPackages()
 {
 	Packages.Empty();
 }
 
+/**
+ * Gets the script fragment hash for the package definition.
+ *
+ * @return The script fragment hash as a string.
+ */
 FString FArticyPackageDef::GetScriptFragmentHash() const
 {
 	return ScriptFragmentHash;

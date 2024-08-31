@@ -105,10 +105,17 @@ public:
 		}
 
 		// By default, return via the key
-		if (ResolveTextExtension)
+		if (ResolveTextExtension && !Key.ToString().EndsWith(".PreviewText"))
 		{
 			return ResolveText(Outer, &Key);
 		}
+
+		// Return backup text, if relevant
+		if (BackupText)
+		{
+			return *BackupText;
+		}
+
 		return Key;
 	}
 

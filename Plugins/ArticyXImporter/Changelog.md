@@ -1,3 +1,17 @@
+## Unreal Importer 1.2.0 Changelog :
+
+- New Features:
+	- Compatibility with latest articy:draft X version
+	- Support seen, unseen and fallback functionality
+	- Feature property text localization
+	- Return arbitrary localized properties in Blueprint
+	- Improved compatibility with Unreal Engine 5.4
+- Fixes:
+	- Fix backup text display issue
+	- Address Unreal warnings
+	- Handle Unreal deprecations
+	- Fix missing Blueprint category
+
 ## Unreal Importer 1.1.1 Changelog :
 
 - Changes:

@@ -8,6 +8,12 @@
 #include "Serialization/JsonSerializer.h"
 #include "HAL/PlatformFileManager.h"
 
+/**
+ * Opens an archive file for reading.
+ *
+ * @param InArchiveFileName The name of the archive file to open.
+ * @return True if the archive was successfully opened and read; otherwise, false.
+ */
 bool UArticyArchiveReader::OpenArchive(const FString& InArchiveFileName)
 {
 	ArchiveFileName = InArchiveFileName;
@@ -27,6 +33,13 @@ bool UArticyArchiveReader::OpenArchive(const FString& InArchiveFileName)
 	return true;
 }
 
+/**
+ * Reads a file from the archive.
+ *
+ * @param Filename The name of the file to read from the archive.
+ * @param OutResult The string that will receive the file's content.
+ * @return True if the file was successfully read; otherwise, false.
+ */
 bool UArticyArchiveReader::ReadFile(const FString& Filename, FString& OutResult) const
 {
 	IPlatformFile& PlatformFile = FPlatformFileManager().GetPlatformFile();
@@ -49,10 +62,15 @@ bool UArticyArchiveReader::ReadFile(const FString& Filename, FString& OutResult)
 		OutResult = ArchiveBytesToString(FileBytes, FileEntry.PackedLength);
 		delete FileHandle;
 	}
-	
+
 	return true;
 }
 
+/**
+ * Reads the header from the archive file.
+ *
+ * @return True if the header was successfully read; otherwise, false.
+ */
 bool UArticyArchiveReader::ReadHeader()
 {
 	IPlatformFile& PlatformFile = FPlatformFileManager().GetPlatformFile();
@@ -85,7 +103,7 @@ bool UArticyArchiveReader::ReadHeader()
 			delete FileHandle;
 			return false;
 		}
-		
+
 		if (!FileHandle->Read(&Version, 1))
 		{
 			delete FileHandle;
@@ -97,7 +115,7 @@ bool UArticyArchiveReader::ReadHeader()
 			delete FileHandle;
 			return false;
 		}
-		
+
 		if (!FileHandle->Read(&Pad, 1))
 		{
 			delete FileHandle;
@@ -118,7 +136,7 @@ bool UArticyArchiveReader::ReadHeader()
 			delete FileHandle;
 			return false;
 		}
-		
+
 		// Store in the output struct
 		Header.Magic = MagicString;
 		Header.Version = Version;
@@ -135,6 +153,11 @@ bool UArticyArchiveReader::ReadHeader()
 	return false;
 }
 
+/**
+ * Reads file data from the archive, populating the file dictionary.
+ *
+ * @return True if the file data was successfully read; otherwise, false.
+ */
 bool UArticyArchiveReader::ReadFileData()
 {
 	FileDictionary.Reset();
@@ -196,7 +219,7 @@ bool UArticyArchiveReader::ReadFileData()
 			}
 			const FString& FilenameString = ArchiveBytesToString(Filename, LengthOfName);
 			delete[] Filename;
-		
+
 			// Store in the output struct
 			FArticyArchiveFileData FileEntry;
 			FileEntry.FileStartPos = FileStartPos;
@@ -217,6 +240,13 @@ bool UArticyArchiveReader::ReadFileData()
 	return false;
 }
 
+/**
+ * Converts an array of bytes to a string, assuming UTF-8 encoding.
+ *
+ * @param In The byte array to convert.
+ * @param Count The number of bytes in the array.
+ * @return The resulting string.
+ */
 FString UArticyArchiveReader::ArchiveBytesToString(const uint8* In, int32 Count)
 {
 	if (In == nullptr || Count <= 0)
@@ -231,6 +261,15 @@ FString UArticyArchiveReader::ArchiveBytesToString(const uint8* In, int32 Count)
 	return FString(UTF8ToTCHAR.Length(), UTF8ToTCHAR.Get());
 }
 
+/**
+ * Fetches a JSON object from the archive, verifying the hash for changes.
+ *
+ * @param JsonRoot The root JSON object to search within.
+ * @param FieldName The field name containing the desired JSON object.
+ * @param Hash The hash value to check against.
+ * @param OutJsonObject The resulting JSON object, if found and changed.
+ * @return True if the JSON object was successfully fetched and changed; otherwise, false.
+ */
 bool UArticyArchiveReader::FetchJson(
 	const TSharedPtr<FJsonObject>& JsonRoot,
 	const FString& FieldName,
@@ -241,7 +280,7 @@ bool UArticyArchiveReader::FetchJson(
 	{
 		return false;
 	}
-	
+
 	const TSharedPtr<FJsonObject> FileInfo = JsonRoot->GetObjectField(FieldName);
 	const FString& NewHash = FileInfo->GetStringField(TEXT("Hash"));
 	if (Hash.Equals(NewHash))
@@ -249,7 +288,7 @@ bool UArticyArchiveReader::FetchJson(
 		return false;
 	}
 	Hash = NewHash;
-	
+
 	const FString& FileName = FileInfo->GetStringField(TEXT("FileName"));
 
 	FString Result;
@@ -267,5 +306,5 @@ bool UArticyArchiveReader::FetchJson(
 		return true;
 	}
 
-	return false; 
+	return false;
 }

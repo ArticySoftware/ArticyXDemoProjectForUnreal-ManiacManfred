@@ -24,10 +24,20 @@
 
 #define LOCTEXT_NAMESPACE "ArticyObjectAssetPicker"
 
+/**
+ * @brief Destructor for SArticyObjectAssetPicker.
+ */
 SArticyObjectAssetPicker::~SArticyObjectAssetPicker()
 {
 }
 
+/**
+ * @brief Constructs the Articy Object Asset Picker widget.
+ *
+ * This method sets up the UI components and filtering logic for the asset picker widget, including search and filter functionality.
+ *
+ * @param InArgs The construction arguments for the widget.
+ */
 void SArticyObjectAssetPicker::Construct(const FArguments& InArgs)
 {
 	OnAssetSelected = InArgs._OnArticyObjectSelected;
@@ -81,9 +91,9 @@ void SArticyObjectAssetPicker::Construct(const FArguments& InArgs)
 	MenuBuilder.EndSection();
 
 	this->ChildSlot
-	[
-		MenuBuilder.MakeWidget()
-	];
+		[
+			MenuBuilder.MakeWidget()
+		];
 
 	// focus the search field next frame
 	RegisterActiveTimer(0.f, FWidgetActiveTimerDelegate::CreateSP(this, &SArticyObjectAssetPicker::FocusSearchField));
@@ -95,9 +105,16 @@ void SArticyObjectAssetPicker::Construct(const FArguments& InArgs)
 	RequestSlowFullListRefresh();
 }
 
-
-void SArticyObjectAssetPicker::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime,
-                                    const float InDeltaTime)
+/**
+ * @brief Ticks the widget for updates.
+ *
+ * This method is called every frame to update the widget state, such as refreshing the asset list if needed.
+ *
+ * @param AllottedGeometry The geometry of the widget.
+ * @param InCurrentTime The current time.
+ * @param InDeltaTime The time elapsed since the last tick.
+ */
+void SArticyObjectAssetPicker::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
 	// reference: assetview.cpp:1189
 	if (bSlowFullListRefreshRequested)
@@ -107,96 +124,109 @@ void SArticyObjectAssetPicker::Tick(const FGeometry& AllottedGeometry, const dou
 	}
 }
 
+/**
+ * @brief Creates internal UI widgets for the asset picker.
+ *
+ * This method initializes the search box, asset view, and class filter button.
+ */
 void SArticyObjectAssetPicker::CreateInternalWidgets()
 {
 	SAssignNew(SearchField, SAssetSearchBox)
-	.HintText(NSLOCTEXT("ContentBrowser", "SearchBoxHint", "Search Assets"))
-	.OnTextChanged(this, &SArticyObjectAssetPicker::OnSearchBoxChanged)
-	.OnTextCommitted(this, &SArticyObjectAssetPicker::OnSearchBoxCommitted)
-	.DelayChangeNotificationsWhileTyping(true);
+		.HintText(NSLOCTEXT("ContentBrowser", "SearchBoxHint", "Search Assets"))
+		.OnTextChanged(this, &SArticyObjectAssetPicker::OnSearchBoxChanged)
+		.OnTextCommitted(this, &SArticyObjectAssetPicker::OnSearchBoxCommitted)
+		.DelayChangeNotificationsWhileTyping(true);
 
 	SAssignNew(AssetViewContainer, SBox)
-	.WidthOverride(325)
-	.HeightOverride(325)
-	[
-		SAssignNew(AssetView, STileView<TWeakObjectPtr<UArticyObject>>)
-		.SelectionMode(ESelectionMode::Single)
-		.ListItemsSource(&FilteredObjects)
-		.OnGenerateTile(this, &SArticyObjectAssetPicker::MakeTileViewWidget)
-		.ItemHeight(this, &SArticyObjectAssetPicker::GetTileViewHeight)
-		.ItemWidth(this, &SArticyObjectAssetPicker::GetTileViewWidth)
-		.OnSelectionChanged(this, &SArticyObjectAssetPicker::SelectAsset)
-		.ItemAlignment(EListItemAlignment::EvenlyDistributed)
-	];
+		.WidthOverride(325)
+		.HeightOverride(325)
+		[
+			SAssignNew(AssetView, STileView<TWeakObjectPtr<UArticyObject>>)
+				.SelectionMode(ESelectionMode::Single)
+				.ListItemsSource(&FilteredObjects)
+				.OnGenerateTile(this, &SArticyObjectAssetPicker::MakeTileViewWidget)
+				.ItemHeight(this, &SArticyObjectAssetPicker::GetTileViewHeight)
+				.ItemWidth(this, &SArticyObjectAssetPicker::GetTileViewWidth)
+				.OnSelectionChanged(this, &SArticyObjectAssetPicker::SelectAsset)
+				.ItemAlignment(EListItemAlignment::EvenlyDistributed)
+		];
 
 	ClassFilterButton = SNew(SComboButton)
-	.OnGetMenuContent(this, &SArticyObjectAssetPicker::CreateClassPicker)
-	.IsEnabled_Lambda([this]() -> bool
-	                                      {
-		                                      return bClassFilterEditable.Get();
-	                                      })
-	//.ContentPadding(2.f)
-	.ButtonContent()
-	[
-		SNew(STextBlock)
-		.Text(this, &SArticyObjectAssetPicker::GetChosenClassName)
-	];
+		.OnGetMenuContent(this, &SArticyObjectAssetPicker::CreateClassPicker)
+		.IsEnabled_Lambda([this]() -> bool
+			{
+				return bClassFilterEditable.Get();
+			})
+		.ButtonContent()
+				[
+					SNew(STextBlock)
+						.Text(this, &SArticyObjectAssetPicker::GetChosenClassName)
+				];
 
-	SAssignNew(FilterBox, SHorizontalBox)
-		+ SHorizontalBox::Slot()
-		  .VAlign(VAlign_Center)
-		  .HAlign(HAlign_Center)
-		  .AutoWidth()
-		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			  .AutoWidth()
-			  .VAlign(VAlign_Center)
-			  .HAlign(HAlign_Center)
-			  .Padding(3.f)
-			[
-				SNew(STextBlock).Text(FText::FromString("Exact Class "))
-			]
-			+ SHorizontalBox::Slot()
-			  .AutoWidth()
-			  .VAlign(VAlign_Center)
-			  .HAlign(HAlign_Center)
-			//.Padding(3.f)
-			[
-				SNew(SCheckBox)
-			.IsEnabled(bExactClassEditable)
+			SAssignNew(FilterBox, SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.VAlign(VAlign_Center)
+				.HAlign(HAlign_Center)
+				.AutoWidth()
+				[
+					SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
+						.Padding(3.f)
+						[
+							SNew(STextBlock).Text(FText::FromString("Exact Class "))
+						]
+						+ SHorizontalBox::Slot()
+						.AutoWidth()
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
+						[
+							SNew(SCheckBox)
+								.IsEnabled(bExactClassEditable)
 #if __cplusplus >= 202002L
-			.IsChecked_Lambda([=, this]()
+								.IsChecked_Lambda([=, this]()
 #else
-			.IsChecked_Lambda([=]()
+									.IsChecked_Lambda([=]()
 #endif
-				               {
-					               return bExactClass.Get() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
-				               })
-			.OnCheckStateChanged(this, &SArticyObjectAssetPicker::OnExactClassCheckBoxChanged)
-			]
-		]
-		+ SHorizontalBox::Slot()
-		.FillWidth(1.f)
-		[
-			SNew(SSpacer)
-		]
-		+ SHorizontalBox::Slot()
-		  .VAlign(VAlign_Center)
-		  .HAlign(HAlign_Right)
-		  .AutoWidth()
-		  .MaxWidth(200.f)
-		[
-			ClassFilterButton.ToSharedRef()
-		];
+										{
+											return bExactClass.Get() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+										})
+									.OnCheckStateChanged(this, &SArticyObjectAssetPicker::OnExactClassCheckBoxChanged)
+						]
+				]
+									+ SHorizontalBox::Slot()
+									.FillWidth(1.f)
+									[
+										SNew(SSpacer)
+									]
+									+ SHorizontalBox::Slot()
+									.VAlign(VAlign_Center)
+									.HAlign(HAlign_Right)
+									.AutoWidth()
+									.MaxWidth(200.f)
+									[
+										ClassFilterButton.ToSharedRef()
+									];
 }
 
+/**
+ * @brief Copies the property value of the specified ArticyId to the clipboard.
+ *
+ * @param Id The ArticyId to copy.
+ */
 void SArticyObjectAssetPicker::OnCopyProperty(FArticyId Id) const
 {
 	FString ValueString = Id.ToString();
 	FPlatformApplicationMisc::ClipboardCopy(*ValueString);
 }
 
+/**
+ * @brief Creates a class picker widget for selecting the class type.
+ *
+ * @return A shared reference to the created class picker widget.
+ */
 TSharedRef<SWidget> SArticyObjectAssetPicker::CreateClassPicker()
 {
 	FClassViewerInitializationOptions ClassViewerConfig;
@@ -212,6 +242,11 @@ TSharedRef<SWidget> SArticyObjectAssetPicker::CreateClassPicker()
 		ClassViewerConfig, FOnClassPicked::CreateRaw(this, &SArticyObjectAssetPicker::OnClassPicked_Func));
 }
 
+/**
+ * @brief Handles the class picked event when a class is selected.
+ *
+ * @param InChosenClass The chosen class.
+ */
 void SArticyObjectAssetPicker::OnClassPicked_Func(UClass* InChosenClass)
 {
 	CurrentClassRestriction = InChosenClass;
@@ -221,6 +256,11 @@ void SArticyObjectAssetPicker::OnClassPicked_Func(UClass* InChosenClass)
 	OnClassPicked.ExecuteIfBound(InChosenClass);
 }
 
+/**
+ * @brief Gets the name of the currently chosen class.
+ *
+ * @return The name of the currently chosen class.
+ */
 FText SArticyObjectAssetPicker::GetChosenClassName() const
 {
 	if (CurrentClassRestriction)
@@ -231,6 +271,13 @@ FText SArticyObjectAssetPicker::GetChosenClassName() const
 	return FText::FromString("None");
 }
 
+/**
+ * @brief Creates a tile view widget for displaying Articy objects.
+ *
+ * @param Entity The Articy object entity to display.
+ * @param OwnerTable The owner table for the widget.
+ * @return A shared reference to the created tile view widget.
+ */
 TSharedRef<class ITableRow> SArticyObjectAssetPicker::MakeTileViewWidget(
 	TWeakObjectPtr<UArticyObject> Entity, const TSharedRef<STableViewBase>& OwnerTable) const
 {
@@ -244,7 +291,7 @@ TSharedRef<class ITableRow> SArticyObjectAssetPicker::MakeTileViewWidget(
 
 	FUIAction CopyAction;
 	CopyAction.ExecuteAction = FExecuteAction::CreateSP(this, &SArticyObjectAssetPicker::OnCopyProperty,
-	                                                    Entity->GetId());
+		Entity->GetId());
 
 	// create the new tile view; the object to display is fixed so it can't change without the asset picker being recreated.
 	TSharedRef<SArticyObjectTileView> Item =
@@ -260,21 +307,41 @@ TSharedRef<class ITableRow> SArticyObjectAssetPicker::MakeTileViewWidget(
 	return TableRowWidget.ToSharedRef();
 }
 
+/**
+ * @brief Gets the height of the tile view.
+ *
+ * @return The height of the tile view.
+ */
 float SArticyObjectAssetPicker::GetTileViewHeight() const
 {
 	return FArticyObjectAssetPicketConstants::TileSize.Y + 2 * FArticyObjectAssetPicketConstants::ThumbnailPadding;
 }
 
+/**
+ * @brief Gets the width of the tile view.
+ *
+ * @return The width of the tile view.
+ */
 float SArticyObjectAssetPicker::GetTileViewWidth() const
 {
 	return FArticyObjectAssetPicketConstants::TileSize.X + 2 * FArticyObjectAssetPicketConstants::ThumbnailPadding;
 }
 
+/**
+ * @brief Clears the selected asset.
+ *
+ * This method clears the current asset selection, effectively deselecting any selected asset.
+ */
 void SArticyObjectAssetPicker::OnClear() const
 {
 	SelectAsset(nullptr, ESelectInfo::Direct);
 }
 
+/**
+ * @brief Refreshes the source items for the asset picker.
+ *
+ * This method retrieves and filters Articy package assets to display in the asset picker.
+ */
 void SArticyObjectAssetPicker::RefreshSourceItems()
 {
 	ArticyPackageDataAssets.Reset();
@@ -288,11 +355,11 @@ void SArticyObjectAssetPicker::RefreshSourceItems()
 	// retrieve all articy packages
 
 #if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >0
-	AssetRegistryModule.Get().GetAssetsByClass(UArticyPackage::StaticClass()->GetClassPathName(), ArticyPackageDataAssets);	
+	AssetRegistryModule.Get().GetAssetsByClass(UArticyPackage::StaticClass()->GetClassPathName(), ArticyPackageDataAssets);
 #else
 	AssetRegistryModule.Get().GetAssetsByClass(UArticyPackage::StaticClass()->GetFName(), ArticyPackageDataAssets);
 #endif
-	
+
 	// test the contained articy objects against the frontend filters
 	for (const FAssetData& ArticyPackageAssetData : ArticyPackageDataAssets)
 	{
@@ -311,6 +378,11 @@ void SArticyObjectAssetPicker::RefreshSourceItems()
 	AssetView->RequestListRefresh();
 }
 
+/**
+ * @brief Sets the search box text for filtering assets.
+ *
+ * @param InSearchText The search text to set.
+ */
 void SArticyObjectAssetPicker::SetSearchBoxText(const FText& InSearchText) const
 {
 	// Update the filter text only if it has actually changed, including case sensitivity (as operators are case sensitive)
@@ -330,11 +402,22 @@ void SArticyObjectAssetPicker::SetSearchBoxText(const FText& InSearchText) const
 	}
 }
 
+/**
+ * @brief Called when frontend filters change.
+ *
+ * This method refreshes the source items to reflect the updated filters.
+ */
 void SArticyObjectAssetPicker::OnFrontendFiltersChanged()
 {
 	RefreshSourceItems();
 }
 
+/**
+ * @brief Tests an asset item against frontend filters.
+ *
+ * @param Item The asset item to test.
+ * @return True if the item passes all filters, false otherwise.
+ */
 bool SArticyObjectAssetPicker::TestAgainstFrontendFilters(const FAssetData& Item) const
 {
 	if (FrontendFilters.IsValid() && !FrontendFilters->PassesAllFilters(Item))
@@ -345,6 +428,15 @@ bool SArticyObjectAssetPicker::TestAgainstFrontendFilters(const FAssetData& Item
 	return true;
 }
 
+/**
+ * @brief Focuses the search field widget.
+ *
+ * This method sets the keyboard focus to the search field widget.
+ *
+ * @param InCurrentTime The current time.
+ * @param InDeltaTime The time elapsed since the last tick.
+ * @return An EActiveTimerReturnType indicating whether to continue or stop the active timer.
+ */
 EActiveTimerReturnType SArticyObjectAssetPicker::FocusSearchField(double InCurrentTime, float InDeltaTime) const
 {
 	if (!SearchField.IsValid())
@@ -360,11 +452,22 @@ EActiveTimerReturnType SArticyObjectAssetPicker::FocusSearchField(double InCurre
 	return EActiveTimerReturnType::Stop;
 }
 
+/**
+ * @brief Requests a slow full list refresh.
+ *
+ * This method sets a flag to request a full refresh of the asset list.
+ */
 void SArticyObjectAssetPicker::RequestSlowFullListRefresh()
 {
 	bSlowFullListRefreshRequested = true;
 }
 
+/**
+ * @brief Selects an asset in the asset picker.
+ *
+ * @param AssetItem The selected asset item.
+ * @param SelectInfo The selection information.
+ */
 void SArticyObjectAssetPicker::SelectAsset(TWeakObjectPtr<UArticyObject> AssetItem, ESelectInfo::Type SelectInfo) const
 {
 	const FAssetData NewAsset(AssetItem.Get());
@@ -372,17 +475,33 @@ void SArticyObjectAssetPicker::SelectAsset(TWeakObjectPtr<UArticyObject> AssetIt
 	FSlateApplication::Get().DismissAllMenus();
 }
 
+/**
+ * @brief Called when the "Exact Class" checkbox state changes.
+ *
+ * @param NewState The new checkbox state.
+ */
 void SArticyObjectAssetPicker::OnExactClassCheckBoxChanged(ECheckBoxState NewState)
 {
 	bExactClass = NewState == ECheckBoxState::Checked;
 	ClassFilter->UpdateExactClass(bExactClass.Get());
 }
 
+/**
+ * @brief Called when the search box text changes.
+ *
+ * @param InSearchText The new search text.
+ */
 void SArticyObjectAssetPicker::OnSearchBoxChanged(const FText& InSearchText) const
 {
 	SetSearchBoxText(InSearchText);
 }
 
+/**
+ * @brief Called when the search box text is committed.
+ *
+ * @param InSearchText The committed search text.
+ * @param CommitInfo The commit information.
+ */
 void SArticyObjectAssetPicker::OnSearchBoxCommitted(const FText& InSearchText, ETextCommit::Type CommitInfo) const
 {
 	SetSearchBoxText(InSearchText);

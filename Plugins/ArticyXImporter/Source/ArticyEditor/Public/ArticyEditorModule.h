@@ -19,17 +19,20 @@ DECLARE_MULTICAST_DELEGATE(FOnImportFinished);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCompilationFinished, UArticyImportData*);
 DECLARE_MULTICAST_DELEGATE(FOnAssetsGenerated);
 
-class FToolBarBuilder;
-class FMenuBuilder;
-
+/**
+ * Enum representing the validity status of an import operation.
+ */
 enum EImportStatusValidity
 {
-	Valid,
-	ImportantAssetMissing,
-	FileMissing,
-	ImportDataAssetMissing
+	Valid, /**< Import is valid. */
+	ImportantAssetMissing, /**< Important asset is missing. */
+	FileMissing, /**< File is missing. */
+	ImportDataAssetMissing /**< Import data asset is missing. */
 };
 
+/**
+ * Articy Editor Module class for managing customizations and commands for the Articy plugin in Unreal Engine.
+ */
 class FArticyEditorModule : public IModuleInterface
 {
 public:
@@ -38,14 +41,30 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
+	/**
+	 * Get the Articy editor module instance.
+	 *
+	 * @return Reference to the Articy editor module.
+	 */
 	static inline FArticyEditorModule& Get()
 	{
 		return FModuleManager::LoadModuleChecked<FArticyEditorModule>(TEXT("ArticyEditor"));
 	}
 
+	/**
+	 * Get the customization manager for Articy editor.
+	 *
+	 * @return Shared pointer to the customization manager.
+	 */
 	TSharedPtr<FArticyEditorCustomizationManager> GetCustomizationManager() const { return CustomizationManager; }
+
+	/**
+	 * Retrieve all Articy packages in the project.
+	 *
+	 * @return An array of Articy packages.
+	 */
 	TArray<UArticyPackage*> ARTICYEDITOR_API GetPackagesSlow();
-	
+
 	void RegisterArticyToolbar();
 	void RegisterAssetTypeActions();
 	void RegisterConsoleCommands();
@@ -83,10 +102,10 @@ private:
 	void AddToolbarExtension(FToolBarBuilder& Builder);
 	TSharedRef<SWidget> OnGenerateArticyToolsMenu() const;
 #endif
-	
+
 	TSharedRef<class SDockTab> OnSpawnArticyMenuTab(const class FSpawnTabArgs& SpawnTabArgs) const;
 	TSharedRef<class SDockTab> OnSpawnArticyGVDebuggerTab(const class FSpawnTabArgs& SpawnTabArgs) const;
-	
+
 private:
 	bool bIsImportQueued = false;
 	FDelegateHandle QueuedImportHandle;
