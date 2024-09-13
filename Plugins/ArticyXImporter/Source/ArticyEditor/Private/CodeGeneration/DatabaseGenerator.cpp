@@ -39,33 +39,26 @@ void DatabaseGenerator::GenerateCode(const UArticyImportData* Data, FString& Out
 
 					header->AccessModifier("public");
 
-					header->Method("", className, "", [&]
+					header->Line();
+					header->Method("static " + className + "*", "Get", "const UObject* WorldContext", [&]
 						{
-							header->Line(FString::Printf(TEXT("SetExpressoScriptsClass(%s::StaticClass());"), *expressoClass));
-						});
+							header->Line(FString::Printf(TEXT("return static_cast<%s*>(Super::Get(WorldContext));"), *className));
+						}, "Get the instance (copy of the asset) of the database.", true,
+						"BlueprintPure, Category = \"articy:draft\", meta=(HidePin=\"WorldContext\", DefaultToSelf=\"WorldContext\", DisplayName=\"GetArticyDB\", keywords=\"database\")");
 
-					{
-						header->Line();
-						header->Method("static " + className + "*", "Get", "const UObject* WorldContext", [&]
-							{
-								header->Line(FString::Printf(TEXT("return static_cast<%s*>(Super::Get(WorldContext));"), *className));
-							}, "Get the instance (copy of the asset) of the database.", true,
-							"BlueprintPure, Category = \"articy:draft\", meta=(HidePin=\"WorldContext\", DefaultToSelf=\"WorldContext\", DisplayName=\"GetArticyDB\", keywords=\"database\")");
+					header->Line();
 
-						header->Line();
-
-						const auto globalVarsClass = CodeGenerator::GetGlobalVarsClassname(Data);
-						header->Method(globalVarsClass + "*", "GetGVs", "", [&]
-							{
-								header->Line(FString::Printf(TEXT("return static_cast<%s*>(Super::GetGVs());"), *globalVarsClass));
-							}, "Get the global variables.", true,
-							"BlueprintPure, Category = \"articy:draft\", meta=(keywords=\"global variables\")", "const override");
-						header->Method(globalVarsClass + "*", "GetRuntimeGVs", "UArticyAlternativeGlobalVariables* Asset", [&]
-							{
-								header->Line(FString::Printf(TEXT("return static_cast<%s*>(Super::GetRuntimeGVs(Asset));"), *globalVarsClass));
-							}, "Gets the current runtime instance of a set of GVs.", true,
-							"BlueprintPure, Category = \"articy:draft\", meta=(keywords=\"global variables\")", "const override");
-					}
+					const auto globalVarsClass = CodeGenerator::GetGlobalVarsClassname(Data);
+					header->Method(globalVarsClass + "*", "GetGVs", "", [&]
+						{
+							header->Line(FString::Printf(TEXT("return static_cast<%s*>(Super::GetGVs());"), *globalVarsClass));
+						}, "Get the global variables.", true,
+						"BlueprintPure, Category = \"articy:draft\", meta=(keywords=\"global variables\")", "const override");
+					header->Method(globalVarsClass + "*", "GetRuntimeGVs", "UArticyAlternativeGlobalVariables* Asset", [&]
+						{
+							header->Line(FString::Printf(TEXT("return static_cast<%s*>(Super::GetRuntimeGVs(Asset));"), *globalVarsClass));
+						}, "Gets the current runtime instance of a set of GVs.", true,
+						"BlueprintPure, Category = \"articy:draft\", meta=(keywords=\"global variables\")", "const override");
 				});
 		});
 }

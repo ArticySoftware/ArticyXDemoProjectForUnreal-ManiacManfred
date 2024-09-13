@@ -17,106 +17,114 @@
 #include "Internationalization/Culture.h"
 #include "Misc/ConfigCacheIni.h"
 
-/**
- * @brief Generates the localizer code for the given Articy import data.
- *
- * This function creates a header file for the Articy localizer system and
- * modifies the project configuration to include necessary directories.
- *
- * @param Data The Articy import data to generate code for.
- * @param OutFile The output file name for the generated code.
- */
 void ArticyLocalizerGenerator::GenerateCode(const UArticyImportData* Data, FString& OutFile)
 {
-	if (!ensure(Data))
-		return;
+    if (!ensure(Data))
+        return;
 
-	OutFile = CodeGenerator::GetArticyLocalizerClassname(Data, true);
-	CodeFileGenerator(OutFile + ".h", true, [&](CodeFileGenerator* header)
-		{
-			header->Line("#include \"CoreUObject.h\"");
-			header->Line("#include \"ArticyLocalizerSystem.h\"");
-			header->Line("#include \"" + OutFile + ".generated.h\"");
+    OutFile = CodeGenerator::GetArticyLocalizerClassname(Data, true);
+    CodeFileGenerator(OutFile + ".h", true, [&](CodeFileGenerator* header)
+        {
+            header->Line("#include \"CoreUObject.h\"");
+            header->Line("#include \"ArticyLocalizerSystem.h\"");
+            header->Line("#include \"" + OutFile + ".generated.h\"");
 
-			header->Line();
+            header->Line();
 
-			// Generate the UArticyLocalizerSystem class
-			const auto type = CodeGenerator::GetArticyLocalizerClassname(Data, false);
-			header->Class(type + " : public UArticyLocalizerSystem", TEXT("Articy Localizer System"), true, [&]
-				{
-					header->AccessModifier("public");
+            // Generate the UArticyLocalizerSystem class
+            const auto type = CodeGenerator::GetArticyLocalizerClassname(Data, false);
+            header->Class(type + " : public UArticyLocalizerSystem", TEXT("Articy Localizer System"), true, [&]
+                {
+                    header->AccessModifier("public");
 
-					header->Method("void", "Reload", "", [&]
-						{
-							header->Line(TEXT("const FString& LangName = FInternationalization::Get().GetCurrentCulture()->GetTwoLetterISOLanguageName()"), true);
-							header->Line(TEXT("if (!bListenerSet) {"));
-							header->Line(FString::Printf(TEXT("FInternationalization::Get().OnCultureChanged().AddUObject(this, &%s::Reload)"), *type), true, true, 1);
-							header->Line(TEXT("bListenerSet = true"), true, true, 1);
-							header->Line(TEXT("}"));
+                    header->Method("void", "Reload", "", [&]
+                        {
+                            // Add listener for language/locale change events
+                            header->Line(TEXT("if (!bListenerSet) {"));
+                            header->Line(FString::Printf(TEXT("FInternationalization::Get().OnCultureChanged().AddUObject(this, &%s::Reload);"), *type), true, true, 1);
+                            header->Line(TEXT("bListenerSet = true;"), true, true, 1);
+                            header->Line(TEXT("}"));
 
-							IterateStringTables(header, FPaths::ProjectContentDir() / "ArticyContent/Generated");
+                            // Declare variables for the current locale and language
+                            header->Line(TEXT("FString LocaleName = FInternationalization::Get().GetCurrentCulture()->GetName();"));
+                            header->Line(TEXT("FString LangName = FInternationalization::Get().GetCurrentCulture()->GetTwoLetterISOLanguageName();"));
 
-							FString L10NDir = FPaths::ProjectContentDir() / "L10N";
-							if (FPaths::DirectoryExists(L10NDir))
-							{
-								for (const auto Language : Data->Languages.Languages)
-								{
-									FString LangPath = L10NDir / Language.Key / "ArticyContent/Generated";
-									if (Language.Key.IsEmpty())
-									{
-										IterateStringTables(header, LangPath);
-										continue;
-									}
-									header->Line(FString::Printf(TEXT("if (LangName.Equals(\"%s\")) {"), *Language.Key));
-									IterateStringTables(header, LangPath, true);
-									header->Line(TEXT("}"));
-								}
-							}
-							header->Line(TEXT("bDataLoaded = true"), true);
-						});
-				});
-		});
+                            // Fallback to default generated string tables if no localization is found
+                            IterateStringTables(header, FPaths::ProjectContentDir() / "ArticyContent/Generated");
 
-	// Path to the DefaultGame.ini
-	FString IniFilePath = FPaths::ProjectConfigDir() + FString(TEXT("DefaultGame.ini"));
+                            // Generate code to load the string tables for all available languages and locales.
+                            IterateLocalizationDirectories(header, FPaths::ProjectContentDir() / "L10N");
 
-	// Section and Key to modify
-	FString SectionName = FString(TEXT("/Script/UnrealEd.ProjectPackagingSettings"));
-	FString KeyName = FString(TEXT("+DirectoriesToAlwaysCook"));
-	FString NewValueToAdd = FString(TEXT("(Path=\"/Game/ArticyContent\")"));
+                            header->Line(TEXT("bDataLoaded = true;"), true);
+                        });
+                });
+        });
 
-	// Modify the INI file
-	ModifyIniFile(IniFilePath, SectionName, KeyName, NewValueToAdd);
+    // Path to the DefaultGame.ini
+    FString IniFilePath = FPaths::ProjectConfigDir() + FString(TEXT("DefaultGame.ini"));
+    FString SectionName = FString(TEXT("/Script/UnrealEd.ProjectPackagingSettings"));
+    FString KeyName = FString(TEXT("+DirectoriesToAlwaysCook"));
+    FString NewValueToAdd = FString(TEXT("(Path=\"/Game/ArticyContent\")"));
+
+    // Modify the INI file
+    ModifyIniFile(IniFilePath, SectionName, KeyName, NewValueToAdd);
 }
 
-/**
- * @brief Iterates over string tables in a given directory and generates code for each table.
- *
- * This function registers and loads string tables from CSV files found in the specified directory path.
- *
- * @param Header The code file generator to write string table registration code.
- * @param DirectoryPath The path to the directory containing string table CSV files.
- * @param Indent Whether to indent the generated code lines.
- */
+void ArticyLocalizerGenerator::IterateLocalizationDirectories(CodeFileGenerator* Header, const FString& LocalizationRoot)
+{
+    IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+    // First, check if the root localization directory exists
+    if (PlatformFile.DirectoryExists(*LocalizationRoot))
+    {
+        TArray<FString> LanguageDirs;
+        PlatformFile.IterateDirectory(*LocalizationRoot, [&](const TCHAR* FilenameOrDirectory, bool bIsDirectory) {
+            if (bIsDirectory)
+            {
+                // This will return the directory name (e.g., "en", "de", "pt-BR")
+                FString LangCode = FPaths::GetCleanFilename(FilenameOrDirectory);
+
+                // Now that we have the language code, we can create the path to its string tables
+                FString LangPath = FString(FilenameOrDirectory) / "ArticyContent/Generated";
+
+                // Generate code to load locale-specific files at runtime
+                Header->Line(FString::Printf(TEXT("if (LocaleName == TEXT(\"%s\")) {"), *LangCode));
+                IterateStringTables(Header, LangPath, true);
+                Header->Line(TEXT("}"));
+
+                // Handle fallback to general language if applicable
+                FString GeneralLang = LangCode.Left(2);  // First two letters (e.g., "en" from "en-US")
+                if (GeneralLang != LangCode) // Only generate if locale and language differ
+                {
+                    Header->Line(FString::Printf(TEXT("else if (LangName == TEXT(\"%s\")) {"), *GeneralLang));
+                    IterateStringTables(Header, LangPath, true);
+                    Header->Line(TEXT("}"));
+                }
+            }
+            return true;  // Continue iterating
+            });
+    }
+}
+
 void ArticyLocalizerGenerator::IterateStringTables(CodeFileGenerator* Header, const FString& DirectoryPath, bool Indent)
 {
-	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-	int IndentOffset = Indent ? 1 : 0;
+    IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+    int IndentOffset = Indent ? 1 : 0;
 
-	if (PlatformFile.DirectoryExists(*DirectoryPath))
-	{
-		TArray<FString> FoundFiles;
-		PlatformFile.FindFiles(FoundFiles, *DirectoryPath, TEXT(".csv"));
+    if (PlatformFile.DirectoryExists(*DirectoryPath))
+    {
+        TArray<FString> FoundFiles;
+        PlatformFile.FindFiles(FoundFiles, *DirectoryPath, TEXT(".csv"));
 
-		FString RelPath = DirectoryPath.Replace(*FPaths::ProjectContentDir(), TEXT(""), ESearchCase::IgnoreCase);
+        FString RelPath = DirectoryPath.Replace(*FPaths::ProjectContentDir(), TEXT(""), ESearchCase::IgnoreCase);
 
-		for (const FString& FilePath : FoundFiles)
-		{
-			FString StringTable = FPaths::GetBaseFilename(*FilePath, true);
-			Header->Line(FString::Printf(TEXT("FStringTableRegistry::Get().UnregisterStringTable(FName(\"%s\"))"), *StringTable), true, Indent, IndentOffset);
-			Header->Line(FString::Printf(TEXT("LOCTABLE_FROMFILE_GAME(\"%s\", \"%s\", \"%s/%s.csv\")"), *StringTable, *StringTable, *RelPath, *StringTable), true, Indent, IndentOffset);
-		}
-	}
+        for (const FString& FilePath : FoundFiles)
+        {
+            FString StringTable = FPaths::GetBaseFilename(*FilePath, true);
+            Header->Line(FString::Printf(TEXT("FStringTableRegistry::Get().UnregisterStringTable(FName(\"%s\"));"), *StringTable), true, Indent, IndentOffset);
+            Header->Line(FString::Printf(TEXT("LOCTABLE_FROMFILE_GAME(\"%s\", \"%s\", \"%s/%s.csv\");"), *StringTable, *StringTable, *RelPath, *StringTable), true, Indent, IndentOffset);
+        }
+    }
 }
 
 /**

@@ -51,6 +51,17 @@ private:
     static void IterateStringTables(CodeFileGenerator* Header, const FString& DirectoryPath, bool Indent = false);
 
     /**
+     * @brief Iterates over string tables in a given directory and generates code for each table.
+     *
+     * This function registers and loads string tables from CSV files found in the specified directory path.
+     *
+     * @param Header The code file generator to write string table registration code.
+     * @param DirectoryPath The path to the directory containing string table CSV files.
+     * @param Indent Whether to indent the generated code lines.
+     */
+    static void IterateLocalizationDirectories(CodeFileGenerator* Header, const FString& LocalizationRoot);
+
+    /**
      * @brief Modifies an INI file by adding a new value to a specified section and key.
      *
      * Reads the existing value for a section and key in the INI file, appends a

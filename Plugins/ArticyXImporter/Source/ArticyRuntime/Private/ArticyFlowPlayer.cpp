@@ -31,6 +31,18 @@ void UArticyFlowPlayer::BeginPlay()
 
     //update Cursor to object referenced by StartOn
     SetCursorToStartNode();
+
+    TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
+        FTickerDelegate::CreateUObject(this, &UArticyFlowPlayer::OnTick), 0.0f);
+}
+
+/**
+ * Called when the game ends or actor destroyed
+ */
+void UArticyFlowPlayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
+    Super::EndPlay(EndPlayReason);
 }
 
 //---------------------------------------------------------------------------//
@@ -421,6 +433,35 @@ void UArticyFlowPlayer::UpdateAvailableBranches()
     UpdateAvailableBranchesInternal(false);
 }
 
+bool UArticyFlowPlayer::OnTick(float DeltaTime)
+{
+    FArticyBranch Branch;
+    while (BranchQueue.Dequeue(Branch))
+    {
+        if (!ensure(ShadowLevel == 0))
+        {
+            UE_LOG(LogArticyRuntime, Error, TEXT("ArticyFlowPlayer::Traverse was called inside a ShadowedOperation! Aborting Play."))
+                return true;
+        }
+
+        for (auto node : Branch.Path)
+        {
+            node->Execute(GetGVs(), GetMethodsProvider());
+
+            // update nodes visited
+            auto* GVs = GetGVs();
+            if (GVs)
+            {
+                GVs->IncrementSeenCounter(Cast<IArticyFlowObject>(node.GetObject()));
+            }
+        }
+
+        Cursor = Branch.Path.Last();
+        UpdateAvailableBranches();
+    }
+    return true;
+}
+
 //---------------------------------------------------------------------------//
 
 /**
@@ -567,26 +608,7 @@ bool UArticyFlowPlayer::FastForwardToPause()
  */
 void UArticyFlowPlayer::PlayBranch(const FArticyBranch& Branch)
 {
-    if (!ensure(ShadowLevel == 0))
-    {
-        UE_LOG(LogArticyRuntime, Error, TEXT("ArticyFlowPlayer::Traverse was called inside a ShadowedOperation! Aborting Play."))
-            return;
-    }
-
-    for (auto node : Branch.Path)
-    {
-        node->Execute(GetGVs(), GetMethodsProvider());
-
-        // update nodes visited
-        auto* GVs = GetGVs();
-        if (GVs)
-        {
-            GVs->IncrementSeenCounter(Cast<IArticyFlowObject>(node.GetObject()));
-        }
-    }
-
-    Cursor = Branch.Path.Last();
-    UpdateAvailableBranches();
+    BranchQueue.Enqueue(Branch);
 }
 
 /**

@@ -71,6 +71,7 @@ class ARTICYRUNTIME_API UArticyFlowPlayer : public UActorComponent
 public:
 
     void BeginPlay() override;
+    void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
     //---------------------------------------------------------------------------//
 
@@ -177,6 +178,8 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Setup")
     bool IgnoresInvalidBranches() const { return bIgnoreInvalidBranches; }
 
+    bool OnTick(float DeltaTime);
+
     DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPushState);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPopState);
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerPaused, TScriptInterface<IArticyFlowObject>, PausedOn);
@@ -267,6 +270,9 @@ private:
     /** The current shadow level (0 == live state). */
     UPROPERTY(Transient, VisibleAnywhere, Category = "Debug")
     mutable uint32 ShadowLevel = 0;
+
+    TQueue<FArticyBranch> BranchQueue;
+    FTSTicker::FDelegateHandle TickerHandle;
 
 private:
     /**

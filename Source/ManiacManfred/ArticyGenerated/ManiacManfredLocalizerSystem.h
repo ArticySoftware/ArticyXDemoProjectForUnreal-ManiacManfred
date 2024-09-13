@@ -16,21 +16,22 @@ class MANIACMANFRED_API UManiacManfredLocalizerSystem : public UArticyLocalizerS
 public:
 	void Reload() 
 	{
-		const FString& LangName = FInternationalization::Get().GetCurrentCulture()->GetTwoLetterISOLanguageName();
 		if (!bListenerSet) {
-			FInternationalization::Get().OnCultureChanged().AddUObject(this, &UManiacManfredLocalizerSystem::Reload);
-			bListenerSet = true;
+			FInternationalization::Get().OnCultureChanged().AddUObject(this, &UManiacManfredLocalizerSystem::Reload);;
+			bListenerSet = true;;
 		}
-FStringTableRegistry::Get().UnregisterStringTable(FName("Export_package"));
-LOCTABLE_FROMFILE_GAME("Export_package", "Export_package", "ArticyContent/Generated/Export_package.csv");
-		if (LangName.Equals("de")) {
-			FStringTableRegistry::Get().UnregisterStringTable(FName("Export_package"));
-			LOCTABLE_FROMFILE_GAME("Export_package", "Export_package", "L10N/de/ArticyContent/Generated/Export_package.csv");
+		FString LocaleName = FInternationalization::Get().GetCurrentCulture()->GetName();
+		FString LangName = FInternationalization::Get().GetCurrentCulture()->GetTwoLetterISOLanguageName();
+FStringTableRegistry::Get().UnregisterStringTable(FName("Export_package"));;
+LOCTABLE_FROMFILE_GAME("Export_package", "Export_package", "ArticyContent/Generated/Export_package.csv");;
+		if (LocaleName == TEXT("de")) {
+			FStringTableRegistry::Get().UnregisterStringTable(FName("Export_package"));;
+			LOCTABLE_FROMFILE_GAME("Export_package", "Export_package", "L10N/de/ArticyContent/Generated/Export_package.csv");;
 		}
-		if (LangName.Equals("en")) {
-			FStringTableRegistry::Get().UnregisterStringTable(FName("Export_package"));
-			LOCTABLE_FROMFILE_GAME("Export_package", "Export_package", "L10N/en/ArticyContent/Generated/Export_package.csv");
+		if (LocaleName == TEXT("en")) {
+			FStringTableRegistry::Get().UnregisterStringTable(FName("Export_package"));;
+			LOCTABLE_FROMFILE_GAME("Export_package", "Export_package", "L10N/en/ArticyContent/Generated/Export_package.csv");;
 		}
-		bDataLoaded = true;
+		bDataLoaded = true;;
 	}
 };

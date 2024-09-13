@@ -174,6 +174,8 @@ class ARTICYRUNTIME_API UArticyDatabase : public UDataAsset, public IShadowState
 
 public:
 
+	UArticyDatabase();
+
 	/**
 	 * Retrieves the primary asset ID for this database.
 	 * @return The primary asset ID.
@@ -189,6 +191,7 @@ public:
 	 * @return A pointer to the Articy database instance.
 	 */
 	static UArticyDatabase* Get(const UObject* WorldContext);
+
 	/**
 	 * Get the current GVs instance.
 	 * @return A pointer to the current UArticyGlobalVariables instance.

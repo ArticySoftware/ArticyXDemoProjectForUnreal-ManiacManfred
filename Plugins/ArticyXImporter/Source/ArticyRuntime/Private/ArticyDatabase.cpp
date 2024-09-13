@@ -148,6 +148,29 @@ void UArticyCloneableObject::AddClone(UArticyObject* Clone, int32 CloneId)
 
 //---------------------------------------------------------------------------//
 
+UArticyDatabase::UArticyDatabase()
+{
+	// Dynamically find the class that inherits from UArticyExpressoScripts
+	TArray<UClass*> ExpressoScriptClasses;
+	for (TObjectIterator<UClass> It; It; ++It)
+	{
+		if (It->IsChildOf(UArticyExpressoScripts::StaticClass()) && !It->HasAnyClassFlags(CLASS_Abstract))
+		{
+			ExpressoScriptClasses.Add(*It);
+		}
+	}
+
+	if (ExpressoScriptClasses.Num() > 0)
+	{
+		// There should be only one, so we use the first one found
+		SetExpressoScriptsClass(ExpressoScriptClasses[0]);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No class derived from UArticyExpressoScripts found."));
+	}
+}
+
 /**
  * Initializes the Articy database, loading default packages.
  */

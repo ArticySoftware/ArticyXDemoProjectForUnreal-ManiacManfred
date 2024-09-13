@@ -14,12 +14,8 @@ class MANIACMANFRED_API UManiacManfredDatabase : public UArticyDatabase
 	GENERATED_BODY()
 	
 public:
-	 UManiacManfredDatabase() 
-	{
-		SetExpressoScriptsClass(UManiacManfredExpressoScripts::StaticClass());
-	}
 	
-	/** Get the instace (copy of the asset) of the database. */
+	/** Get the instance (copy of the asset) of the database. */
 	UFUNCTION(BlueprintPure, Category = "articy:draft", meta=(HidePin="WorldContext", DefaultToSelf="WorldContext", DisplayName="GetArticyDB", keywords="database"))
 	static UManiacManfredDatabase* Get(const UObject* WorldContext) 
 	{
