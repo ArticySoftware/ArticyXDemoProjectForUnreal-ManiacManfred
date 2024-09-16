@@ -118,6 +118,8 @@ Inheritance diagram for UArticyFlowPlayer:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a876ecdecb533ca7c6e7ce38547c47d23" id="r_a876ecdecb533ca7c6e7ce38547c47d23"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a876ecdecb533ca7c6e7ce38547c47d23">BeginPlay</a> () override</td></tr>
 <tr class="separator:a876ecdecb533ca7c6e7ce38547c47d23"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7d3c00d3e675aab14a0c5b66ef9956f" id="r_ac7d3c00d3e675aab14a0c5b66ef9956f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac7d3c00d3e675aab14a0c5b66ef9956f">EndPlay</a> (const EEndPlayReason::Type EndPlayReason) override</td></tr>
+<tr class="separator:ac7d3c00d3e675aab14a0c5b66ef9956f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8c3c9ee1473d82fcb81f612de3d61fef" id="r_a8c3c9ee1473d82fcb81f612de3d61fef"><td class="memTemplParams" colspan="2">template&lt;typename Lambda &gt; </td></tr>
 <tr class="memitem:a8c3c9ee1473d82fcb81f612de3d61fef"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a8c3c9ee1473d82fcb81f612de3d61fef">ShadowedOperation</a> (Lambda Operation) const</td></tr>
 <tr class="separator:a8c3c9ee1473d82fcb81f612de3d61fef"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -163,6 +165,9 @@ uint32&#160;</td><td class="memItemRight" valign="bottom"><b>GetShadowLevel</b> 
 <tr class="separator:afbccc6dd8489a880e4dc8237f5328141"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8deefd09a86bb2291ee53b8f9116c280" id="r_a8deefd09a86bb2291ee53b8f9116c280"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8deefd09a86bb2291ee53b8f9116c280">IgnoresInvalidBranches</a> () const</td></tr>
 <tr class="separator:a8deefd09a86bb2291ee53b8f9116c280"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95102ab51f8da02683aab1066751d8ba" id="r_a95102ab51f8da02683aab1066751d8ba"><td class="memItemLeft" align="right" valign="top"><a id="a95102ab51f8da02683aab1066751d8ba" name="a95102ab51f8da02683aab1066751d8ba"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>OnTick</b> (float DeltaTime)</td></tr>
+<tr class="separator:a95102ab51f8da02683aab1066751d8ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a730925bfb5178e71ada53aff9e686b79" id="r_a730925bfb5178e71ada53aff9e686b79"><td class="memItemLeft" align="right" valign="top"><a id="a730925bfb5178e71ada53aff9e686b79" name="a730925bfb5178e71ada53aff9e686b79"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>DECLARE_DYNAMIC_MULTICAST_DELEGATE</b> (FOnPushState)</td></tr>
 <tr class="separator:a730925bfb5178e71ada53aff9e686b79"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -233,6 +238,32 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <p>Called when the game starts or when spawned. </p>
+
+</div>
+</div>
+<a id="ac7d3c00d3e675aab14a0c5b66ef9956f" name="ac7d3c00d3e675aab14a0c5b66ef9956f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac7d3c00d3e675aab14a0c5b66ef9956f">&#9670;&#160;</a></span>EndPlay()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void UArticyFlowPlayer::EndPlay </td>
+          <td>(</td>
+          <td class="paramtype">const EEndPlayReason::Type</td>          <td class="paramname"><span class="paramname"><em>EndPlayReason</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Called when the game ends or actor destroyed </p>
 
 </div>
 </div>

@@ -1,5 +1,6 @@
 var NAVTREEINDEX3 =
 {
+"db/d89/struct_f_articy_property_def.html#af60c8a957dfa1dc6004c4b4ff2d0247f":[1,0,63,6],
 "db/d89/struct_f_articy_property_def.html#af82db98e25d599b98f4a7829ab35cf27":[1,0,63,1],
 "db/d89/struct_f_articy_property_def.html#af8ca35126f84129ca27f896c2d59a430":[1,0,63,0],
 "db/d8d/_articy_primitive_8h_source.html":[2,0,0,1,0,22],
@@ -248,6 +249,5 @@ var NAVTREEINDEX3 =
 "df/d68/class_f_frontend_filter___articy_object.html#a5a5804a25282bc58f33db5448c6f3c26":[1,0,84,10],
 "df/d68/class_f_frontend_filter___articy_object.html#a5daf0c426f381fe59ed2ae53272740a3":[1,0,84,0],
 "df/d68/class_f_frontend_filter___articy_object.html#a67eb081126e22c40f5760b66489e6bef":[1,0,84,3],
-"df/d68/class_f_frontend_filter___articy_object.html#aaca8a329c9de3976f2e3caabb17e8d6e":[1,0,84,5],
-"df/d68/class_f_frontend_filter___articy_object.html#ac466643c63867ebc5dd5553da334b6ee":[1,0,84,8]
+"df/d68/class_f_frontend_filter___articy_object.html#aaca8a329c9de3976f2e3caabb17e8d6e":[1,0,84,5]
 };

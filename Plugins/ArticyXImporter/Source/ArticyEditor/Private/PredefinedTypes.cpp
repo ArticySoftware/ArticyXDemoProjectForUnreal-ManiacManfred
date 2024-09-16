@@ -249,8 +249,8 @@ FString CreateOpenTag(const TArray<TagInfo>& currentTags)
  */
 FString ConvertUnityMarkupToUnreal(const FString& Input)
 {
-	// Create a pattern to find closing tags
-	static FRegexPattern Pattern(TEXT("<\\/.+?>|<(\\w+)(=\"?(.+?)\"?)?>"));
+	// Updated pattern to match more complex tags with attributes
+	static FRegexPattern Pattern(TEXT("<\\/(.+?)>|<(\\w+)([^>]*?)>"));
 
 	// Create a matcher to search the input
 	FRegexMatcher myMatcher(Pattern, Input);
@@ -278,45 +278,38 @@ FString ConvertUnityMarkupToUnreal(const FString& Input)
 
 		// Check if we're dealing with a start tag or an end tag
 		FString tagName = myMatcher.GetCaptureGroup(1);
-		if (tagName.Len() > 0) {
-			bool hasTagsToClose = HasAnyTags(currentTags);
-
-			// Add to our list
+		if (tagName.Len() > 0) {  // Handle start tags
+			// Add to our list of open tags
 			FString value = myMatcher.GetCaptureGroup(3);
 			TagInfo info = TagInfo(tagName, value);
 			currentTags.Add(info);
 
-			// Don't bother if this is a dummy tag we're ignoring
+			// If it's not a dummy tag, open it in Unreal format
 			if (!info.dummy)
 			{
-				// If we have tags to close, close them
-				if (hasTagsToClose) { strings += (TEXT("</>")); }
-
-				// Open the tag
-				strings += (CreateOpenTag(currentTags));
+				strings += CreateOpenTag(currentTags);
 			}
 		}
-		else {
+		else {  // Handle closing tags
 			if (currentTags.Num() == 0)
 			{
 				// Syntax issue, revert to original
 				return Input;
 			}
 
-			// Remove our last tag
+			// Remove the last opened tag
 			auto popped = currentTags.Pop();
 
-			// Only do the rest if the closed tag is not a dummy
+			// If it's not a dummy tag, close it in Unreal format
 			if (!popped.dummy)
 			{
-				// Write out the close
-				strings += (TEXT("</>"));
+				strings += TEXT("</>");
+			}
 
-				// If any tags are left, reopen
-				if (currentTags.Num() > 0)
-				{
-					strings += (CreateOpenTag(currentTags));
-				}
+			// Reopen any remaining tags in the correct order
+			if (currentTags.Num() > 0)
+			{
+				strings += CreateOpenTag(currentTags);
 			}
 		}
 
@@ -324,13 +317,13 @@ FString ConvertUnityMarkupToUnreal(const FString& Input)
 
 	} while (myMatcher.FindNext());
 
-	// Add end of string
+	// Add any remaining text after the last match
 	if (last != Input.Len())
 	{
-		strings += (Input.Mid(last, Input.Len() - last));
+		strings += Input.Mid(last, Input.Len() - last);
 	}
 
-	// Create string
+	// Create the final result string
 	FString result = strings;
 
 	// Static map for replacing HTML entities
@@ -339,15 +332,14 @@ FString ConvertUnityMarkupToUnreal(const FString& Input)
 		{TEXT("&gt;"), TEXT(">")},
 		{TEXT("&quot;"), TEXT("\"")},
 		{TEXT("&apos;"), TEXT("\"")}
-		// Add more replacements here if needed
 	};
 
-	// Iterate over the map and replace each occurrence in the FString
+	// Replace each occurrence of HTML entities in the final result
 	for (const TPair<FString, FString>& pair : replacements)
 	{
 		result = result.Replace(*pair.Key, *pair.Value);
 	}
 
-	// Return result
+	// Return the final result
 	return result;
 }

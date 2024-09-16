@@ -1,6 +1,7 @@
 var class_u_articy_flow_player =
 [
     [ "BeginPlay", "d4/d8d/class_u_articy_flow_player.html#a876ecdecb533ca7c6e7ce38547c47d23", null ],
+    [ "EndPlay", "d4/d8d/class_u_articy_flow_player.html#ac7d3c00d3e675aab14a0c5b66ef9956f", null ],
     [ "Explore", "d4/d8d/class_u_articy_flow_player.html#a9236de6382ac6929b418d4ec921e63e2", null ],
     [ "FinishCurrentPausedObject", "d4/d8d/class_u_articy_flow_player.html#a2643f76f66625f92a076e3e1ce28d475", null ],
     [ "GetAvailableBranches", "d4/d8d/class_u_articy_flow_player.html#afbccc6dd8489a880e4dc8237f5328141", null ],

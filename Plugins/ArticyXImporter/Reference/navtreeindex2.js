@@ -1,5 +1,6 @@
 var NAVTREEINDEX2 =
 {
+"d7/de3/class_f_articy_button_customization_factory.html#abdbaddf9463c01dd6d1b0300c844c368":[1,0,25,0],
 "d7/df3/_packages_import_8h_source.html":[2,0,0,0,1,14],
 "d8/d0d/class_expresso_scripts_generator.html":[1,0,14],
 "d8/d0e/struct_expresso_type_1_1_definition.html":[1,0,15,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX2 =
 "db/d89/struct_f_articy_property_def.html#ac3a2c4c3d92d74b6f0e60442f786e66b":[1,0,63,4],
 "db/d89/struct_f_articy_property_def.html#ad0907489c6906425b1386940a5b429c0":[1,0,63,5],
 "db/d89/struct_f_articy_property_def.html#adfcc17a94b1d9fa2a7d58eee347532ae":[1,0,63,7],
-"db/d89/struct_f_articy_property_def.html#af24a23ebb2682581907e42ecdee277d5":[1,0,63,2],
-"db/d89/struct_f_articy_property_def.html#af60c8a957dfa1dc6004c4b4ff2d0247f":[1,0,63,6]
+"db/d89/struct_f_articy_property_def.html#af24a23ebb2682581907e42ecdee277d5":[1,0,63,2]
 };
