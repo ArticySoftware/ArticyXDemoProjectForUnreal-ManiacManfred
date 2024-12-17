@@ -1,0 +1,40 @@
+{
+	"FileVersion": 3,
+	"Version": 8,
+	"VersionName": "1.2.1",
+	"FriendlyName": "ArticyXImporter",
+	"Description": "Importer and interface for articy:draft X.",
+	"Category": "Articy",
+	"CreatedBy": "articy Software GmbH & Co. KG",
+	"CreatedByURL": "https://www.articy.com",
+	"DocsURL": "https://github.com/ArticySoftware/ArticyXImporterForUnreal/blob/master/README.md",
+	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/09bac960d10c4e2aa743b346f1a53abc",
+	"SupportURL": "https://www.articy.com/en/support/",
+	"EngineVersion": "5.2.0",
+	"CanContainContent": true,
+	"Installed": true,
+	"Modules": [
+		{
+			"Name": "ArticyRuntime",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Win64",
+				"Mac",
+				"IOS",
+				"Android"
+			]
+		},
+		{
+			"Name": "ArticyEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Win64",
+				"Mac",
+				"IOS",
+				"Android"
+			]
+		}
+	]
+}

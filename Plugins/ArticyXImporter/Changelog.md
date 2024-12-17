@@ -1,3 +1,32 @@
+## Unreal Importer 1.3.0 Changelog :
+
+- New Features:
+    - Compatibility with Unreal Engine 5.5
+    - Audio assets handling outside of Audio folder
+    - Rich text handling supports more entities
+- Changes:
+    - Improved compatibility with Unreal Engine 5.4
+    - Improved Perforce compatibility
+    - Updated .NET collection handling in build
+    - Handle reloading packaging settings on import
+    - Code style improvements
+- Fixes:
+    - Fix import crash on project upgrade
+    - Fix issue with voice-over access calls
+    - Fix compilation bugs with some build settings
+    - Fix type base struct macro
+    - Several general code fixes 
+
+## Unreal Importer 1.2.1 Changelog :
+
+- Changes:
+	- Handle language variations in localization
+	- Move Expresso script loading code into runtime
+- Fixes:
+	- Fix issue with shadow states on multiple flow players
+	- Fix rich text tag processing
+	- Fix escaping on source localization strings
+
 ## Unreal Importer 1.2.0 Changelog :
 
 - New Features:

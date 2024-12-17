@@ -5,10 +5,10 @@ using System.Collections.Generic;
 
 public class ManiacManfredTarget : TargetRules
 {
-	public ManiacManfredTarget(TargetInfo Target) : base(Target)
+	public ManiacManfredTarget(TargetInfo target) : base(target)
 	{
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.Latest;
-		ExtraModuleNames.AddRange( new string[] { "ManiacManfred" } );
+		ExtraModuleNames.Add("ManiacManfred");
 	}
 }

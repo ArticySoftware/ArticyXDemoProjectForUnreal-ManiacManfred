@@ -4,11 +4,11 @@ using UnrealBuildTool;
 using System.Collections.Generic;
 public class ManiacManfredEditorTarget : TargetRules
 {
-	public ManiacManfredEditorTarget(TargetInfo Target) : base(Target)
+	public ManiacManfredEditorTarget(TargetInfo target) : base(target)
 	{
 		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.Latest;
-		ExtraModuleNames.AddRange( new string[] { "ManiacManfred" } );
-        IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_2;
+		ExtraModuleNames.Add("ManiacManfred");
+        IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
     }
 }
