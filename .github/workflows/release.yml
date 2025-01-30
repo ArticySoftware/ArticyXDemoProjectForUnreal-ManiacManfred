@@ -16,8 +16,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Install Dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq gh
 
       - name: Update EngineAssociation in ManiacManfred.uproject
         run: |
@@ -30,37 +30,27 @@ jobs:
         run: |
           zip -r ManiacManfred_UE${{ matrix.ue_version }}.zip . -x ".git/*"
 
-      - name: Delete Existing Release (if it exists)
+      - name: Delete Existing Release (If Exists)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
           RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/ue${{ matrix.ue_version }} --jq .id || echo "NOT_FOUND")
+          
           if [[ "$RELEASE_ID" != "NOT_FOUND" ]]; then
-            echo "Deleting existing release..."
+            echo "Deleting existing release with ID: $RELEASE_ID..."
             gh api --method DELETE repos/${{ github.repository }}/releases/$RELEASE_ID
+          else
+            echo "No existing release found for ue${{ matrix.ue_version }}, proceeding..."
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Delete Existing Tag (if it exists)
-        run: |
-          set -e
-          if git ls-remote --tags origin | grep -q "refs/tags/ue${{ matrix.ue_version }}"; then
-            echo "Deleting existing tag..."
-            git push origin --delete ue${{ matrix.ue_version }}
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create GitHub Release Without Source Code
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ue${{ matrix.ue_version }}
           name: Unreal Engine ${{ matrix.ue_version }} Release
           body: |
-            This release contains the prepackaged build configured for Unreal Engine ${{ matrix.ue_version }}.
+            This release contains the source code configured for Unreal Engine ${{ matrix.ue_version }}.
           files: ManiacManfred_UE${{ matrix.ue_version }}.zip
-          draft: false
-          prerelease: false
-          generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
