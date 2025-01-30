@@ -16,9 +16,15 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Update EngineAssociation in ManiacManfred.uproject
         run: |
-          sed -i 's/"EngineAssociation": ".*"/"EngineAssociation": "${{ matrix.ue_version }}"/' ManiacManfred.uproject
+          jq '.EngineAssociation = "${{ matrix.ue_version }}"' ManiacManfred.uproject > temp.json && mv temp.json ManiacManfred.uproject
+
+      - name: Verify Update
+        run: cat ManiacManfred.uproject
 
       - name: Zip Source Code
         run: |
