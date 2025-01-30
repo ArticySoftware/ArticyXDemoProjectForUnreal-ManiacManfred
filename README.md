@@ -17,7 +17,7 @@ Before you can start you need to make sure you have all the additional applicati
 You only need the articy:draft Maniac Manfred project, if you want to make changes to the project and export them to see how the Unreal project and the plugin behaves.
 
 **Important:**
-Before opening the project, run DownloadPlugin.ps1 (Windows) or DownloadPlugin.sh (Linux/macOS) to ensure the necessary plugin is installed.
+Before opening the project, run `DownloadPlugin.ps1` (Windows) or `DownloadPlugin.sh` (Linux/macOS) to ensure the necessary plugin is installed.
 
 # Overview
 
