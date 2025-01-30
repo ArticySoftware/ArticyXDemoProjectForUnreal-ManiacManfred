@@ -79,3 +79,6 @@ DerivedDataCache/*
 
 #Rider link plugin
 Plugins/Developer/RiderLink/*
+
+# Articy plugin
+Plugins/ArticyXImporter

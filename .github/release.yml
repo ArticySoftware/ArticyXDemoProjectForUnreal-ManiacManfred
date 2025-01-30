@@ -1,0 +1,36 @@
+name: Build Unreal Engine Releases
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  create-releases:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ue_version: [5.3, 5.4, 5.5]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Update EngineAssociation in ManiacManfred.uproject
+        run: |
+          sed -i 's/"EngineAssociation": ".*"/"EngineAssociation": "${{ matrix.ue_version }}"/' ManiacManfred.uproject
+
+      - name: Zip Source Code
+        run: |
+          zip -r ManiacManfred_UE${{ matrix.ue_version }}.zip . -x ".git/*"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ue${{ matrix.ue_version }}
+          name: Unreal Engine ${{ matrix.ue_version }} Release
+          body: |
+            This release contains the source code configured for Unreal Engine ${{ matrix.ue_version }}.
+          files: ManiacManfred_UE${{ matrix.ue_version }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
