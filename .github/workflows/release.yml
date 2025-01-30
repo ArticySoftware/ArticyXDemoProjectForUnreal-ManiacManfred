@@ -30,13 +30,37 @@ jobs:
         run: |
           zip -r ManiacManfred_UE${{ matrix.ue_version }}.zip . -x ".git/*"
 
-      - name: Create GitHub Release
+      - name: Delete Existing Release (if it exists)
+        run: |
+          set -e
+          RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/ue${{ matrix.ue_version }} --jq .id || echo "NOT_FOUND")
+          if [[ "$RELEASE_ID" != "NOT_FOUND" ]]; then
+            echo "Deleting existing release..."
+            gh api --method DELETE repos/${{ github.repository }}/releases/$RELEASE_ID
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete Existing Tag (if it exists)
+        run: |
+          set -e
+          if git ls-remote --tags origin | grep -q "refs/tags/ue${{ matrix.ue_version }}"; then
+            echo "Deleting existing tag..."
+            git push origin --delete ue${{ matrix.ue_version }}
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release Without Source Code
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ue${{ matrix.ue_version }}
           name: Unreal Engine ${{ matrix.ue_version }} Release
           body: |
-            This release contains the source code configured for Unreal Engine ${{ matrix.ue_version }}.
+            This release contains the prepackaged build configured for Unreal Engine ${{ matrix.ue_version }}.
           files: ManiacManfred_UE${{ matrix.ue_version }}.zip
+          draft: false
+          prerelease: false
+          generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
