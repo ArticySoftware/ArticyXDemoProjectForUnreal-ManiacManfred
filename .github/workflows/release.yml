@@ -35,14 +35,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
-          RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/ue${{ matrix.ue_version }} --jq .id 2>/dev/null || true)
-          
-          # If gh api failed (404 Not Found), the release does not exist
-          if [[ -z "$RELEASE_ID" ]]; then
-            echo "No existing release found for ue${{ matrix.ue_version }}, proceeding..."
+
+          # Check if the release exists
+          if gh release list --json tagName | jq -r '.[] | select(.tagName=="ue${{ matrix.ue_version }}")' > /dev/null; then
+            echo "Release ue${{ matrix.ue_version }} exists. Deleting..."
+            RELEASE_ID=$(gh release view ue${{ matrix.ue_version }} --json id --jq '.id')
+            gh release delete ue${{ matrix.ue_version }} --yes
           else
-            echo "Deleting existing release with ID: $RELEASE_ID..."
-            gh api --method DELETE repos/${{ github.repository }}/releases/$RELEASE_ID
+            echo "No existing release found for ue${{ matrix.ue_version }}, proceeding..."
           fi
 
       - name: Create GitHub Release
