@@ -35,13 +35,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
-          RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/ue${{ matrix.ue_version }} --jq .id || echo "NOT_FOUND")
+          RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/ue${{ matrix.ue_version }} --jq .id 2>/dev/null || echo "NOT_FOUND")
           
-          if [[ "$RELEASE_ID" != "NOT_FOUND" ]]; then
+          if [[ "$RELEASE_ID" == "NOT_FOUND" ]]; then
+            echo "No existing release found for ue${{ matrix.ue_version }}, proceeding..."
+          else
             echo "Deleting existing release with ID: $RELEASE_ID..."
             gh api --method DELETE repos/${{ github.repository }}/releases/$RELEASE_ID
-          else
-            echo "No existing release found for ue${{ matrix.ue_version }}, proceeding..."
           fi
 
       - name: Create GitHub Release
