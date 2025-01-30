@@ -33,6 +33,7 @@ jobs:
       - name: Delete Existing Release (If Exists)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
         run: |
           set -e
 
