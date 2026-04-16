@@ -22,6 +22,10 @@ if ((Test-Path $pluginPathProject) -or (Test-Path $pluginPathEngine)) {
     exit 0
 }
 
+if (-not (Test-Path $projectPluginsDir)) {
+    $createPluginDirOutput = New-Item -Path $projectPluginsDir -ItemType "Directory"
+}
+
 Write-Host "Downloading plugin from $pluginURL..."
 $zipPath = "$projectPluginsDir\$pluginName.zip"
 Invoke-WebRequest -Uri $pluginURL -OutFile $zipPath
