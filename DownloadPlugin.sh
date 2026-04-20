@@ -21,6 +21,10 @@ if [ -d "$PLUGIN_PATH_PROJECT" ] || [ -d "$PLUGIN_PATH_ENGINE" ]; then
     exit 0
 fi
 
+if [ ! -d "$PROJECT_PLUGINS_DIR" ]; then
+    mkdir $PROJECT_PLUGINS_DIR
+fi
+
 echo "Downloading plugin from $PLUGIN_URL..."
 ZIP_PATH="$PROJECT_PLUGINS_DIR/$PLUGIN_NAME.zip"
 curl -L $PLUGIN_URL -o $ZIP_PATH
